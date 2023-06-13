@@ -1,0 +1,19 @@
+@mixin flex-row-center {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+@mixin flex-col-center {
+  display: flex;
+  flex-flow: column wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+@media screen and (max-width: 500px) {
+  .flex-half__item, .flex-quarter__item {
+    flex: 0 0 100%;
+  }
+}
