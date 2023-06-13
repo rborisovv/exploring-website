@@ -1,0 +1,48 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body,
+h1, h2, h3, h4, h5, h6,
+p,
+ol, ul,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+  padding: 0;
+}
+
+ul, ol {
+  list-style: none;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button, input, select, textarea {
+  text-decoration: none;
+}
+
+button, input, select, textarea {
+  border: none;
+  outline: none;
+}
+
+button,
+input[type="button"],
+input[type="reset"],
+input[type="submit"],
+select,
+textarea {
+  appearance: none;
+}
+
+body {
+  font-size: 16px;
+}
