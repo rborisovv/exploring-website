@@ -65,6 +65,14 @@ public class PreApplicationInit implements CommandLineRunner {
                 .email("bradoslav00@gmail.com").birthDate(LocalDate.parse("2000-01-20"))
                 .joinDate(LocalDate.now()).roles(roles).build();
 
+        final User user = User.builder().firstName("User").lastName("User")
+                .username("username")
+                .password(this.passwordEncoder.encode("password"))
+                .email("user@abv.bg").birthDate(LocalDate.now())
+                .joinDate(LocalDate.now()).roles(Set.of(userRole))
+                .build();
+
         this.userRepository.save(admin);
+        this.userRepository.save(user);
     }
 }
