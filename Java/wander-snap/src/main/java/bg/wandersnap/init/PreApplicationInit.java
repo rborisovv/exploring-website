@@ -12,7 +12,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
 import java.util.Set;
 
 @Component
@@ -55,10 +54,7 @@ public class PreApplicationInit implements CommandLineRunner {
 
         final Role userRole = new Role(RoleEnum.USER, userAuthorities);
         final Role adminRole = new Role(RoleEnum.ADMIN, adminAuthorities);
-
-        final HashSet<Role> roles = new HashSet<>();
-        roles.add(userRole);
-        roles.add(adminRole);
+        final Set<Role> roles = Set.of(userRole, adminRole);
 
         this.roleRepository.save(userRole);
         this.roleRepository.save(adminRole);
