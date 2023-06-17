@@ -12,6 +12,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.Set;
 
 @Component
@@ -61,7 +62,8 @@ public class PreApplicationInit implements CommandLineRunner {
 
         final User admin = User.builder().firstName("Radoslav").lastName("Borisov")
                 .age(23).username("radi2000").password(this.passwordEncoder.encode("password"))
-                .email("bradoslav00@gmail.com").roles(roles).build();
+                .email("bradoslav00@gmail.com").birthDate(LocalDate.parse("2000-01-20"))
+                .joinDate(LocalDate.now()).roles(roles).build();
 
         this.userRepository.save(admin);
     }

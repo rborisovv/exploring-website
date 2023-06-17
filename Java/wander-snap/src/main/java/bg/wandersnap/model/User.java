@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.Set;
 
 @Getter
@@ -20,6 +21,9 @@ public class User extends BaseEntity implements Serializable {
     @Column(nullable = false, length = 40)
     private String lastName;
 
+    @Column(nullable = false)
+    private LocalDate birthDate;
+
     @Column
     private Integer age;
 
@@ -34,4 +38,9 @@ public class User extends BaseEntity implements Serializable {
 
     @OneToMany
     private Set<Role> roles;
+
+    @Column(nullable = false)
+    private LocalDate joinDate;
+
+
 }
