@@ -13,25 +13,25 @@ import org.thymeleaf.templatemode.TemplateMode;
 import java.util.concurrent.Executor;
 
 @Configuration
-public class ApplicationBeanConfiguration {
+class ApplicationBeanConfiguration {
     private static final String CHARACTER_ENCODING = "UTF-8";
     private static final String TEMPLATE_RESOLVER_PREFIX = "classpath:/templates/";
     private static final String TEMPLATE_RESOLVER_SUFFIX = ".html";
 
     @Bean
-    public ModelMapper modelMapper() {
+    ModelMapper modelMapper() {
         return new ModelMapper();
     }
 
     @Bean
-    public Validator validator() {
+    Validator validator() {
         try (final ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory()) {
             return validatorFactory.getValidator();
         }
     }
 
     @Bean
-    public SpringResourceTemplateResolver templateResolver() {
+    SpringResourceTemplateResolver templateResolver() {
         final SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
         templateResolver.setPrefix(TEMPLATE_RESOLVER_PREFIX);
         templateResolver.setSuffix(TEMPLATE_RESOLVER_SUFFIX);
@@ -42,7 +42,7 @@ public class ApplicationBeanConfiguration {
     }
 
     @Bean
-    public Executor executor() {
+    Executor executor() {
         final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(24);
         executor.setMaxPoolSize(32);
@@ -51,5 +51,4 @@ public class ApplicationBeanConfiguration {
         executor.initialize();
         return executor;
     }
-
 }

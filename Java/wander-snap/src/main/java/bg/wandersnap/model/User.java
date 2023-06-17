@@ -1,0 +1,37 @@
+package bg.wandersnap.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.io.Serializable;
+import java.util.Set;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity
+@Table(name = "users")
+public class User extends BaseEntity implements Serializable {
+    @Column(nullable = false, length = 40)
+    private String firstName;
+
+    @Column(nullable = false, length = 40)
+    private String lastName;
+
+    @Column
+    private Integer age;
+
+    @Column(nullable = false, unique = true, length = 10)
+    private String username;
+
+    @Column(nullable = false, length = 120)
+    private String password;
+
+    @Column(unique = true, length = 25)
+    private String email;
+
+    @OneToMany
+    private Set<Role> roles;
+}
