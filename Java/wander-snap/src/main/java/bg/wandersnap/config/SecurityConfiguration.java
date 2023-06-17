@@ -68,7 +68,7 @@ class SecurityConfiguration {
     static RoleHierarchy roleHierarchy() {
         final var hierarchy = new RoleHierarchyImpl();
         hierarchy.setHierarchy("""
-                ROLE_ADMIN > ROLE_STAFF
+                ROLE_ADMIN > ROLE_USER
                 """);
 
         return hierarchy;
