@@ -2,8 +2,13 @@ package bg.wandersnap.config;
 
 import bg.wandersnap.dao.UserRepository;
 import bg.wandersnap.service.UserDetailsServiceImpl;
+import bg.wandersnap.util.RsaKeyProviderFactory;
+import com.auth0.jwt.interfaces.RSAKeyProvider;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
@@ -20,7 +25,19 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 
 @Configuration
@@ -29,9 +46,11 @@ import java.util.Collections;
 class SecurityConfiguration {
 
     private final UserRepository userRepository;
+    private final ResourceLoader resourceLoader;
 
-    SecurityConfiguration(final UserRepository userRepository) {
+    SecurityConfiguration(final UserRepository userRepository, final ResourceLoader resourceLoader) {
         this.userRepository = userRepository;
+        this.resourceLoader = resourceLoader;
     }
 
     @Bean
@@ -84,5 +103,35 @@ class SecurityConfiguration {
     @Bean
     UserDetailsService userDetailsService() {
         return new UserDetailsServiceImpl(this.userRepository);
+    }
+
+    @Bean
+    RSAKeyProvider rsaKeyProvider() throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
+        final Resource privateKeyPath = resourceLoader.getResource("classpath:keys/private_key.pem");
+        final Resource publicKeyPath = resourceLoader.getResource("classpath:keys/public_key.pem");
+        final byte[] privateKeyBytes = Files.readAllBytes(Paths.get(privateKeyPath.getURI()));
+        final byte[] publicKeyBytes = Files.readAllBytes(Paths.get(publicKeyPath.getURI()));
+
+        final byte[] decodedPrivateKey = decodeRsaKeyContent(privateKeyBytes);
+        final byte[] decodedPublicKey = decodeRsaKeyContent(publicKeyBytes);
+        final PKCS8EncodedKeySpec privateSpec = new PKCS8EncodedKeySpec(decodedPrivateKey);
+        final X509EncodedKeySpec publicSpec = new X509EncodedKeySpec(decodedPublicKey);
+
+        final KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        final RSAPrivateKey privateKey = (RSAPrivateKey) keyFactory.generatePrivate(privateSpec);
+        final RSAPublicKey publicKey = (RSAPublicKey) keyFactory.generatePublic(publicSpec);
+        return new RsaKeyProviderFactory(privateKey, publicKey);
+    }
+
+
+    private byte[] decodeRsaKeyContent(final byte[] rsaKeyBytes) {
+        final String rsaKeyContent = new String(rsaKeyBytes, StandardCharsets.UTF_8)
+                .replace("-----BEGIN PRIVATE KEY-----", StringUtils.EMPTY)
+                .replace("-----BEGIN PUBLIC KEY-----", StringUtils.EMPTY)
+                .replace("-----END PRIVATE KEY-----", StringUtils.EMPTY)
+                .replace("-----END PUBLIC KEY-----", StringUtils.EMPTY)
+                .replaceAll("\\s+", StringUtils.EMPTY);
+
+        return Base64.getDecoder().decode(rsaKeyContent);
     }
 }
