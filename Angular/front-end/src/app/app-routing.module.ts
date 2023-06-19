@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 
 const routes: Routes = [
@@ -8,7 +8,10 @@ const routes: Routes = [
 
 @NgModule({
   imports: [
-    RouterModule.forRoot(routes),
+    RouterModule.forRoot(routes, {
+      scrollPositionRestoration: "top",
+      preloadingStrategy: PreloadAllModules
+    }),
     FontAwesomeModule
   ],
   exports: [RouterModule]
