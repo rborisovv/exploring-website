@@ -41,6 +41,4 @@ public class User extends BaseEntity implements Serializable {
 
     @Column(nullable = false)
     private LocalDate joinDate;
-
-
 }
