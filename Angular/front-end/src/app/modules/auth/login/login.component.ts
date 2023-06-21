@@ -1,5 +1,6 @@
 import { Component, OnInit, Renderer2 } from '@angular/core';
 import { faEnvelopeOpenText, faMessage, faMobileScreenButton, IconDefinition } from "@fortawesome/free-solid-svg-icons";
+import { FormControl, FormGroup, Validators } from "@angular/forms";
 
 @Component({
   selector: 'app-login',
@@ -10,6 +11,19 @@ export class LoginComponent implements OnInit {
   mobileScreen: IconDefinition = faMobileScreenButton;
   envelope: IconDefinition = faEnvelopeOpenText;
   message: IconDefinition = faMessage;
+
+  loginFormGroup: FormGroup = new FormGroup({
+    username: new FormControl('', [
+      Validators.required,
+      Validators.minLength(5),
+      Validators.maxLength(10)
+    ]),
+    password: new FormControl('', [
+      Validators.required,
+      Validators.minLength(6),
+      Validators.maxLength(20)
+    ])
+  });
 
   constructor(private renderer: Renderer2) {
   }
@@ -27,8 +41,6 @@ export class LoginComponent implements OnInit {
       this.renderer.addClass(element, className);
     }
   }
-
-  protected readonly faMessage = faMessage;
 
   decorateActiveInput(event: Event): void {
     const input: HTMLInputElement = (event.target) as HTMLInputElement;

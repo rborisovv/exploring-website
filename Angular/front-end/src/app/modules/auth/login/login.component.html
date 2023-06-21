@@ -24,19 +24,21 @@
       </p>
     </div>
 
-    <form autocomplete="off">
+    <form autocomplete="off" [formGroup]="loginFormGroup">
       <div class="input app-input">
-        <input type="text" name="email" id="email"
+        <input type="text" name="username" id="username"
+               formControlName="username"
                (focus)="decorateActiveInput($event)"
                (blur)="decorateActiveInput($event)"/>
-        <label for="email">Email</label>
+        <label for="username" i18n>Username</label>
       </div>
 
       <div class="input app-input">
         <input type="password" name="password" id="password"
+               formControlName="password"
                (focus)="decorateActiveInput($event)"
                (blur)="decorateActiveInput($event)"/>
-        <label for="password">Password</label>
+        <label for="password" i18n>Password</label>
       </div>
 
       <button type="button" class="button app-login-button">
