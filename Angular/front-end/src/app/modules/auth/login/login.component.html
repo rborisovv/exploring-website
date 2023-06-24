@@ -24,7 +24,7 @@
       </p>
     </div>
 
-    <form autocomplete="off" [formGroup]="loginFormGroup">
+    <form autocomplete="off" [formGroup]="loginFormGroup" (ngSubmit)="submitLogin()">
       <div class="input app-input">
         <input type="text" name="username" id="username"
                formControlName="username"
@@ -41,7 +41,7 @@
         <label for="password">{{'common.form.password.label' | translate}}</label>
       </div>
 
-      <button type="button" class="button app-login-button">
+      <button type="Submit" class="button app-login-button" [disabled]="loginFormGroup.invalid">
         Login
       </button>
     </form>
@@ -57,9 +57,9 @@
       </p>
     </div>
 
-    <div class="modal app-modal">
+    <div class="modal app-modal" [ngClass]="{'modal-active': gdprModalOpened}">
       <div class="modal-backdrop"></div>
-      <div class="modal-body app-modal-body">
+      <div class="modal-body app-modal-body" #gdprModalBody>
         <h3 class="modal-title text-center">
           GDPR Settings
         </h3>
@@ -69,9 +69,8 @@
         </p>
 
         <div class="settings-buttons">
-          <div class="settings-button-container">
+          <div class="settings-button-container" (click)="applyConsentToGdprSection($event,GdprSectionsEnum.PUSH)">
             <div class="settings-button-icon app-settings-button-icon">
-              <i class="fa-solid fa-mobile-screen-button"></i>
               <fa-icon [icon]="mobileScreen"></fa-icon>
             </div>
             <button type="button" class="settings-button app-settings-button">
@@ -79,20 +78,18 @@
             </button>
           </div>
 
-          <div class="settings-button-container">
+          <div class="settings-button-container" (click)="applyConsentToGdprSection($event,GdprSectionsEnum.EMAIL)">
             <div class="settings-button-icon app-settings-button-icon">
               <fa-icon [icon]="envelope"></fa-icon>
-              <i class="fa-solid fa-envelope-open-text"></i>
             </div>
             <button type="button" class="settings-button app-settings-button">
               Email
             </button>
           </div>
 
-          <div class="settings-button-container">
+          <div class="settings-button-container" (click)="applyConsentToGdprSection($event, GdprSectionsEnum.SMS)">
             <div class="settings-button-icon app-settings-button-icon">
               <fa-icon [icon]="message"></fa-icon>
-              <i class="fa-regular fa-message"></i>
             </div>
             <button type="button" class="settings-button app-settings-button">
               SMS
@@ -104,7 +101,7 @@
           Save settings
         </button>
 
-        <a href="#" class="text link">Learn more</a>
+        <a href="javascript:void(0)" class="text link">Learn more</a>
       </div>
     </div>
   </div>
