@@ -1,0 +1,12 @@
+{
+  "common": {
+    "form": {
+      "username": {
+        "label": "Username"
+      },
+      "password": {
+        "label": "Password"
+      }
+    }
+  }
+}

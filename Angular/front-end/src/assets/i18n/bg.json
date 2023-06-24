@@ -1,0 +1,12 @@
+{
+  "common": {
+    "form": {
+      "username": {
+        "label": "Потребителско име"
+      },
+      "password": {
+        "label": "Парола"
+      }
+    }
+  }
+}

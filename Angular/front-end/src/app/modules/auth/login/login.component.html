@@ -30,7 +30,7 @@
                formControlName="username"
                (focus)="decorateActiveInput($event)"
                (blur)="decorateActiveInput($event)"/>
-        <label for="username" i18n>Username</label>
+        <label for="username">{{'common.form.username.label' | translate}}</label>
       </div>
 
       <div class="input app-input">
@@ -38,7 +38,7 @@
                formControlName="password"
                (focus)="decorateActiveInput($event)"
                (blur)="decorateActiveInput($event)"/>
-        <label for="password" i18n>Password</label>
+        <label for="password">{{'common.form.password.label' | translate}}</label>
       </div>
 
       <button type="button" class="button app-login-button">

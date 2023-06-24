@@ -4,6 +4,7 @@ import { LoginComponent } from './login/login.component';
 import { RouterModule, Routes } from "@angular/router";
 import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 import { ReactiveFormsModule } from "@angular/forms";
+import { TranslateModule } from "@ngx-translate/core";
 
 const ROUTES: Routes = [
   {
@@ -17,12 +18,13 @@ const ROUTES: Routes = [
   declarations: [
     LoginComponent
   ],
-  imports: [
-    CommonModule,
-    RouterModule.forChild(ROUTES),
-    FontAwesomeModule,
-    ReactiveFormsModule
-  ],
+    imports: [
+        CommonModule,
+        RouterModule.forChild(ROUTES),
+        FontAwesomeModule,
+        ReactiveFormsModule,
+        TranslateModule
+    ],
   providers: []
 })
 export class AuthModule {
