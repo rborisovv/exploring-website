@@ -2,31 +2,23 @@ package bg.wandersnap.init;
 
 import bg.wandersnap.dao.AuthorityRepository;
 import bg.wandersnap.dao.RoleRepository;
-import bg.wandersnap.dao.UserRepository;
 import bg.wandersnap.enumeration.AuthorityEnum;
-import bg.wandersnap.enumeration.RoleEnum;
 import bg.wandersnap.model.Authority;
-import bg.wandersnap.model.Role;
-import bg.wandersnap.model.User;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
 import java.util.Set;
 
 @Component
+@Profile("Development")
 public class PreApplicationInit implements CommandLineRunner {
     private final RoleRepository roleRepository;
     private final AuthorityRepository authorityRepository;
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
 
-    public PreApplicationInit(final RoleRepository roleRepository, final AuthorityRepository authorityRepository, final UserRepository userRepository, final PasswordEncoder passwordEncoder) {
+    public PreApplicationInit(final RoleRepository roleRepository, final AuthorityRepository authorityRepository) {
         this.roleRepository = roleRepository;
         this.authorityRepository = authorityRepository;
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -42,7 +34,6 @@ public class PreApplicationInit implements CommandLineRunner {
                 new Authority(AuthorityEnum.DELETE_PRIVILEGE)
         );
 
-
         final Set<Authority> adminAuthorities = Set.of(
                 new Authority(AuthorityEnum.RESOURCE_MANAGEMENT_PRIVILEGE),
                 new Authority(AuthorityEnum.ROLE_MANAGEMENT_PRIVILEGE),
@@ -52,27 +43,5 @@ public class PreApplicationInit implements CommandLineRunner {
 
         this.authorityRepository.saveAll(userAuthorities);
         this.authorityRepository.saveAll(adminAuthorities);
-
-        final Role userRole = new Role(RoleEnum.USER, userAuthorities);
-        final Role adminRole = new Role(RoleEnum.ADMIN, adminAuthorities);
-        final Set<Role> roles = Set.of(userRole, adminRole);
-
-        this.roleRepository.save(userRole);
-        this.roleRepository.save(adminRole);
-
-        final User admin = User.builder().firstName("Radoslav").lastName("Borisov")
-                .age(23).username("radi2000").password(this.passwordEncoder.encode("password"))
-                .email("bradoslav00@gmail.com").birthDate(LocalDate.parse("2000-01-20"))
-                .joinDate(LocalDate.now()).roles(roles).build();
-
-        final User user = User.builder().firstName("User").lastName("User")
-                .username("username")
-                .password(this.passwordEncoder.encode("password"))
-                .email("user@abv.bg").birthDate(LocalDate.now())
-                .joinDate(LocalDate.now()).roles(Set.of(userRole))
-                .build();
-
-        this.userRepository.save(admin);
-        this.userRepository.save(user);
     }
 }

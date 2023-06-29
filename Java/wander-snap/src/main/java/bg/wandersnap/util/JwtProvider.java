@@ -1,7 +1,7 @@
 package bg.wandersnap.util;
 
 import bg.wandersnap.dao.UserRepository;
-import bg.wandersnap.exception.RsaKeyIntegrityViolationException;
+import bg.wandersnap.exception.security.RsaKeyIntegrityViolationException;
 import bg.wandersnap.exception.user.UserNotFoundException;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
@@ -26,15 +26,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static bg.wandersnap.common.ExceptionMessages.TOKEN_CANNOT_BE_VERIFIED;
+import static bg.wandersnap.common.JwtConstants.*;
 import static java.util.Arrays.stream;
 
 @Component
 public class JwtProvider {
-    private static final String TOKEN_ISSUER = "Wander-Snap";
-    private static final String TOKEN_AUDIENCE = "Wander-Snap-audience";
-    private static final String ROLES = "Roles";
-    private static final String AUTHORITIES = "Authorities";
-
     private final UserDetailsService userDetailsService;
     private final UserRepository userRepository;
     private final RSAKeyProvider rsaKeyProvider;
@@ -48,23 +44,21 @@ public class JwtProvider {
         this.rsaKeyIntegrityVerifier = rsaKeyIntegrityVerifier;
     }
 
-    public String generateToken(@CurrentSecurityContext(expression = "authentication.name") final String username)
+    public String generateToken(@CurrentSecurityContext(expression = "authentication.principal") final UserDetails userDetails)
             throws IOException, NoSuchAlgorithmException, RsaKeyIntegrityViolationException {
 
         this.rsaKeyIntegrityVerifier.verifyRsaKeysIntegrity();
-        final String[] claims = getClaimsFromUser(username);
+        final String[] claims = getClaimsFromUser(userDetails);
         try {
-            final long expireDurationInMs = 30 * 60 * 1000;
-
             final Algorithm algorithm = Algorithm.RSA256(this.rsaKeyProvider);
             return JWT.create()
                     .withIssuer(TOKEN_ISSUER)
                     .withAudience(TOKEN_AUDIENCE)
                     .withIssuedAt(new Date())
-                    .withSubject(username)
+                    .withSubject(userDetails.getUsername())
                     .withArrayClaim(AUTHORITIES, claims)
-                    .withClaim(ROLES, getRole(username))
-                    .withExpiresAt(new Date(System.currentTimeMillis() + expireDurationInMs))
+                    .withClaim(ROLES, getRole(userDetails.getUsername()))
+                    .withExpiresAt(new Date(System.currentTimeMillis() + TOKEN_EXPIRATION_TIME))
                     .sign(algorithm);
         } catch (final JWTCreationException exception) {
             throw new JWTCreationException(exception.getMessage(), exception.getCause());
@@ -119,8 +113,15 @@ public class JwtProvider {
         return jwtVerifier.verify(token).getClaim(AUTHORITIES).asArray(String.class);
     }
 
+    private String[] getClaimsFromUser(@CurrentSecurityContext(expression = "authentication.principal") final UserDetails userDetails) {
+        return userDetails.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .toArray(String[]::new);
+    }
+
     private String[] getClaimsFromUser(final String username) {
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        final UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
         return userDetails.getAuthorities()
                 .stream()

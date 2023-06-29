@@ -1,12 +1,14 @@
 package bg.wandersnap.config;
 
 import bg.wandersnap.dao.UserRepository;
+import bg.wandersnap.enumeration.RoleEnum;
 import bg.wandersnap.service.UserDetailsServiceImpl;
 import bg.wandersnap.util.RsaKeyProviderFactory;
 import com.auth0.jwt.interfaces.RSAKeyProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpMethod;
@@ -18,9 +20,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
@@ -101,8 +106,22 @@ class SecurityConfiguration {
     }
 
     @Bean
+    @Profile("Production")
     UserDetailsService userDetailsService() {
         return new UserDetailsServiceImpl(this.userRepository);
+    }
+
+    @Bean
+    @Profile("Development")
+    UserDetailsService inMemoryUserDetailsService() {
+        final UserDetails userDetails = User.builder()
+                .username("user")
+                .password(this.passwordEncoder().encode("pw"))
+                .roles(RoleEnum.ADMIN.name(), RoleEnum.USER.name())
+                .build();
+
+
+        return new InMemoryUserDetailsManager(userDetails);
     }
 
     @Bean

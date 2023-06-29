@@ -1,4 +1,4 @@
-package bg.wandersnap.exception;
+package bg.wandersnap.exception.security;
 
 import lombok.NoArgsConstructor;
 

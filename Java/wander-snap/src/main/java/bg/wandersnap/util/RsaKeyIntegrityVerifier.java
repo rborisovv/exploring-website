@@ -1,6 +1,6 @@
 package bg.wandersnap.util;
 
-import bg.wandersnap.exception.RsaKeyIntegrityViolationException;
+import bg.wandersnap.exception.security.RsaKeyIntegrityViolationException;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
