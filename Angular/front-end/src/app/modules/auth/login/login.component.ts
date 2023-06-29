@@ -8,7 +8,7 @@ import {
   ViewChild
 } from '@angular/core';
 import { faEnvelopeOpenText, faMobileScreenButton, IconDefinition } from "@fortawesome/free-solid-svg-icons";
-import { FormControl, FormGroup, Validators } from "@angular/forms";
+import { AbstractControl, FormControl, FormGroup, Validators } from "@angular/forms";
 import { faMessage } from "@fortawesome/free-regular-svg-icons";
 
 import { GdprSectionsEnum } from "../../../model/auth/gdpr.sections.enum";
@@ -80,7 +80,8 @@ export class LoginComponent implements OnInit {
 
   protected submitLogin(): void {
     if (this.loginFormGroup.invalid) {
-
+      this.loginFormGroup.markAllAsTouched();
+      return;
     }
     this.gdprModalOpened = true;
   }
@@ -96,5 +97,13 @@ export class LoginComponent implements OnInit {
 
     const sectionIndex: number = this.gdprConsents.indexOf(section);
     sectionIndex === -1 ? this.gdprConsents.push(section) : this.gdprConsents.splice(sectionIndex, 1);
+  }
+
+  get username(): AbstractControl | null {
+    return this.loginFormGroup.get('username');
+  }
+
+  get password(): AbstractControl | null {
+    return this.loginFormGroup.get('password');
   }
 }

@@ -16,11 +16,11 @@
       </div>
 
       <h1 class="header-title text-center">
-        Welcome to WanderSnap!
+        {{'common.form.login.label' | translate}}
       </h1>
 
       <p class="text text-center">
-        Keep your data safe
+        {{'common.form.login.mini' | translate}}
       </p>
     </div>
 
@@ -30,7 +30,16 @@
                formControlName="username"
                (focus)="decorateActiveInput($event)"
                (blur)="decorateActiveInput($event)"/>
-        <label for="username">{{'common.form.username.label' | translate}}</label>
+        <label for="username">{{'common.form.login.username.label' | translate}}</label>
+      </div>
+      <div *ngIf="username?.touched && username?.errors?.['required']" class="text-danger">
+        {{'common.form.login.invalid.username.required.label' | translate}}
+      </div>
+      <div *ngIf="username?.touched && username?.errors?.['minlength']" class="text-danger">
+        {{'common.form.login.invalid.username.minLength.label' | translate}}
+      </div>
+      <div *ngIf="username?.touched && username?.errors?.['maxlength']" class="text-danger">
+        {{'common.form.login.invalid.username.maxLength.label' | translate}}
       </div>
 
       <div class="input app-input">
@@ -38,22 +47,35 @@
                formControlName="password"
                (focus)="decorateActiveInput($event)"
                (blur)="decorateActiveInput($event)"/>
-        <label for="password">{{'common.form.password.label' | translate}}</label>
+        <label for="password">{{'common.form.login.password.label' | translate}}</label>
+      </div>
+      <div *ngIf="password?.touched && password?.errors?.['required']" class="text-danger">
+        {{'common.form.login.invalid.password.required.label' | translate}}
+      </div>
+      <div *ngIf="password?.touched && password?.errors?.['minlength']" class="text-danger">
+        {{'common.form.login.invalid.password.minLength.label' | translate}}
+      </div>
+      <div *ngIf="password?.touched && password?.errors?.['maxlength']" class="text-danger">
+        {{'common.form.login.invalid.password.maxLength.label' | translate}}
       </div>
 
-      <button type="Submit" class="button app-login-button" [disabled]="loginFormGroup.invalid">
-        Login
+      <button type="Submit" class="button app-login-button">
+        {{'common.form.login.loginBtn' | translate}}
       </button>
     </form>
 
     <div class="text-center">
-      <a href="javascript:void(0)" class="text link forgot-password__btn">Forgot password?</a>
+      <a href="javascript:void(0)" class="text link forgot-password__btn">
+        {{'common.form.login.forgotPassword' | translate}}
+      </a>
     </div>
 
     <div class="footer">
       <p class="text text-center">
-        Don't have an account?
-        <a href="#" class="text link">Register!</a>
+        {{'common.form.login.missingAccount' | translate}}
+        <a href="#" class="text link">
+          {{'common.form.login.register' | translate}}
+        </a>
       </p>
     </div>
 

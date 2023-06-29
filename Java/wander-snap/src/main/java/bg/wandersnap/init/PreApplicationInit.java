@@ -12,7 +12,7 @@ import java.util.Set;
 
 @Component
 @Profile("Development")
-public class PreApplicationInit implements CommandLineRunner {
+public final class PreApplicationInit implements CommandLineRunner {
     private final RoleRepository roleRepository;
     private final AuthorityRepository authorityRepository;
 

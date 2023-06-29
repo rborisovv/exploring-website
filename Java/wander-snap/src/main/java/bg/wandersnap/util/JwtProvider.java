@@ -30,7 +30,7 @@ import static bg.wandersnap.common.JwtConstants.*;
 import static java.util.Arrays.stream;
 
 @Component
-public class JwtProvider {
+public final class JwtProvider {
     private final UserDetailsService userDetailsService;
     private final UserRepository userRepository;
     private final RSAKeyProvider rsaKeyProvider;

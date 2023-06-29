@@ -28,7 +28,7 @@ import static bg.wandersnap.common.JwtConstants.JWT_COOKIE_NAME;
 import static bg.wandersnap.common.JwtConstants.TOKEN_PREFIX;
 
 @Component
-public class JwtAuthFilter extends OncePerRequestFilter {
+public final class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtProvider jwtProvider;
     private final UserDetailsService userDetailsService;
     private final RsaKeyIntegrityVerifier rsaKeyIntegrityVerifier;
