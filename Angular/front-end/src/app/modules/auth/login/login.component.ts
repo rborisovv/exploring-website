@@ -88,7 +88,6 @@ export class LoginComponent implements OnInit {
 
   protected applyConsentToGdprSection(event: MouseEvent, section: GdprSectionsEnum): void {
     const gdprElement: HTMLDivElement | null = (<HTMLElement>event.target).closest('.settings-button-container');
-
     const gdprIconContainer: HTMLDivElement = gdprElement?.querySelector('div.app-settings-button-icon') as HTMLDivElement;
     const gdprButton: HTMLButtonElement = gdprElement?.querySelector('button.app-settings-button') as HTMLButtonElement;
 
