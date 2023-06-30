@@ -2,12 +2,14 @@ package bg.wandersnap.config;
 
 import bg.wandersnap.dao.UserRepository;
 import bg.wandersnap.enumeration.RoleEnum;
+import bg.wandersnap.httpFilter.JwtAuthFilter;
 import bg.wandersnap.service.UserDetailsServiceImpl;
 import bg.wandersnap.util.RsaKeyProviderFactory;
 import com.auth0.jwt.interfaces.RSAKeyProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -30,6 +32,7 @@ import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestHandler;
 import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
@@ -55,14 +58,20 @@ import java.util.Collections;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(jsr250Enabled = true)
-class SecurityConfiguration {
+public class SecurityConfiguration {
+    private static final String[] PUBLIC_URLS = {
+            "/auth/csrf",
+            "/auth/login"
+    };
 
     private final UserRepository userRepository;
     private final ResourceLoader resourceLoader;
+    private final JwtAuthFilter jwtAuthFilter;
 
-    SecurityConfiguration(final UserRepository userRepository, final ResourceLoader resourceLoader) {
+    public SecurityConfiguration(final UserRepository userRepository, final ResourceLoader resourceLoader, final @Lazy JwtAuthFilter jwtAuthFilter) {
         this.userRepository = userRepository;
         this.resourceLoader = resourceLoader;
+        this.jwtAuthFilter = jwtAuthFilter;
     }
 
     @Bean
@@ -81,12 +90,13 @@ class SecurityConfiguration {
                 .csrf((csrf) -> csrf
                         .csrfTokenRepository(tokenRepository)
                         .csrfTokenRequestHandler(requestHandler))
-                .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/auth/login")
-                                .permitAll()
-                                .anyRequest()
-                                .authenticated()
-                ).build();
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(PUBLIC_URLS)
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 
     @Bean
@@ -150,7 +160,6 @@ class SecurityConfiguration {
                 .password(this.passwordEncoder().encode("password"))
                 .roles(RoleEnum.ADMIN.name(), RoleEnum.USER.name())
                 .build();
-
 
         return new InMemoryUserDetailsManager(userDetails);
     }
