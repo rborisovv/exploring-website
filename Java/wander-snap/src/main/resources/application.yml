@@ -37,7 +37,7 @@ logging:
           web:
             http:
               SessionRepositoryFilter:
-                SESSION_LOGGER: DEBUG
+                SESSION_LOGGER: TRACE
         web: TRACE
 
 server:

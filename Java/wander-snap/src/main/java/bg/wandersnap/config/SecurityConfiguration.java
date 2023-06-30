@@ -17,15 +17,22 @@ import org.springframework.security.access.expression.method.MethodSecurityExpre
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestHandler;
+import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
@@ -56,6 +63,30 @@ class SecurityConfiguration {
     SecurityConfiguration(final UserRepository userRepository, final ResourceLoader resourceLoader) {
         this.userRepository = userRepository;
         this.resourceLoader = resourceLoader;
+    }
+
+    @Bean
+    SecurityFilterChain filterChain(final HttpSecurity httpSecurity) throws Exception {
+        final CookieCsrfTokenRepository tokenRepository = new CookieCsrfTokenRepository();
+        tokenRepository.setCookieHttpOnly(false);
+        final XorCsrfTokenRequestAttributeHandler delegate = new XorCsrfTokenRequestAttributeHandler();
+
+        delegate.setCsrfRequestAttributeName(null);
+        final CsrfTokenRequestHandler requestHandler = delegate::handle;
+
+        return httpSecurity
+                .cors(Customizer.withDefaults())
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf((csrf) -> csrf
+                        .csrfTokenRepository(tokenRepository)
+                        .csrfTokenRequestHandler(requestHandler))
+                .authorizeHttpRequests(auth ->
+                        auth.requestMatchers("/auth/login")
+                                .permitAll()
+                                .anyRequest()
+                                .authenticated()
+                ).build();
     }
 
     @Bean
@@ -115,8 +146,8 @@ class SecurityConfiguration {
     @Profile("Development")
     UserDetailsService inMemoryUserDetailsService() {
         final UserDetails userDetails = User.builder()
-                .username("user")
-                .password(this.passwordEncoder().encode("pw"))
+                .username("username")
+                .password(this.passwordEncoder().encode("password"))
                 .roles(RoleEnum.ADMIN.name(), RoleEnum.USER.name())
                 .build();
 
