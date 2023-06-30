@@ -12,6 +12,10 @@ import { AbstractControl, FormControl, FormGroup, Validators } from "@angular/fo
 import { faMessage } from "@fortawesome/free-regular-svg-icons";
 
 import { GdprSectionsEnum } from "../../../model/auth/gdpr.sections.enum";
+import { AuthService } from "../../../services/auth.service";
+import { UserLoginModel } from "../../../model/auth/user.login.model";
+import { GdprSectionsModel } from "../../../model/auth/gdpr.sections.model";
+import { take } from "rxjs";
 
 @Component({
   selector: 'app-login',
@@ -23,9 +27,9 @@ export class LoginComponent implements OnInit {
   protected readonly GdprSectionsEnum = GdprSectionsEnum;
 
   gdprModalOpened: boolean = false;
-  gdprConsents: Array<string> = [];
+  private gdprConsents: GdprSectionsModel = {};
 
-  @ViewChild('gdprModalBody') gdprModal?: ElementRef;
+  @ViewChild('gdprModalBody') gdprModal: ElementRef;
 
   mobileScreen: IconDefinition = faMobileScreenButton;
   envelope: IconDefinition = faEnvelopeOpenText;
@@ -41,11 +45,11 @@ export class LoginComponent implements OnInit {
       Validators.required,
       Validators.minLength(6),
       Validators.maxLength(20)
-    ]),
-    gdprConsent: new FormControl([], [])
+    ])
   });
 
-  constructor(private renderer: Renderer2) {
+  constructor(private renderer: Renderer2,
+              private authService: AuthService) {
   }
 
   ngOnInit(): void {
@@ -94,8 +98,17 @@ export class LoginComponent implements OnInit {
     this.toggleClass(gdprIconContainer, 'settings-button-icon-active');
     this.toggleClass(gdprButton, 'settings-button-active');
 
-    const sectionIndex: number = this.gdprConsents.indexOf(section);
-    sectionIndex === -1 ? this.gdprConsents.push(section) : this.gdprConsents.splice(sectionIndex, 1);
+    switch (section) {
+      case GdprSectionsEnum.PUSH:
+        this.gdprConsents.push = !this.gdprConsents.push;
+        break;
+      case GdprSectionsEnum.EMAIL:
+        this.gdprConsents.email = !this.gdprConsents.email;
+        break;
+      case GdprSectionsEnum.SMS:
+        this.gdprConsents.sms = !this.gdprConsents.sms;
+        break;
+    }
   }
 
   get username(): AbstractControl | null {
@@ -104,5 +117,21 @@ export class LoginComponent implements OnInit {
 
   get password(): AbstractControl | null {
     return this.loginFormGroup.get('password');
+  }
+
+  loginUser(): void {
+    if (this.loginFormGroup.invalid) {
+      return;
+    }
+
+    const loginData: UserLoginModel = {
+      username: this.username?.value,
+      password: this.password?.value,
+      gdprConsent: this.gdprConsents
+    }
+
+    this.authService.loginUser(loginData).pipe(
+      take(1))
+      .subscribe();
   }
 }

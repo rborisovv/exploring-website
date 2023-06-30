@@ -13,6 +13,6 @@ export class AuthService {
   }
 
   public loginUser(loginModel: UserLoginModel): Observable<UserLoginModel> {
-    return this.http.post<UserLoginModel>(this.API_URL, loginModel);
+    return this.http.post<UserLoginModel>(`${this.API_URL}/auth/login`, loginModel);
   }
 }

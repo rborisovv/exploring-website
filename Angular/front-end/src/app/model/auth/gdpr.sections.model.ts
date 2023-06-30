@@ -1,5 +1,5 @@
 export interface GdprSectionsModel {
-  push?: string,
-  email?: string,
-  sms?: string
+  push?: boolean,
+  email?: boolean,
+  sms?: boolean
 }
