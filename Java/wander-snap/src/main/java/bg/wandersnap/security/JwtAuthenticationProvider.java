@@ -11,6 +11,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 
+import static bg.wandersnap.common.ExceptionMessages.TOKEN_CANNOT_BE_VERIFIED;
+
 @Component
 public class JwtAuthenticationProvider implements AuthenticationProvider {
     private final JwtProvider jwtProvider;
@@ -28,7 +30,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         try {
             jwtVerifier.verify(jwtTokenCredentials);
         } catch (final JWTVerificationException ex) {
-            throw new JwtTokenVerificationException(ex.getMessage());
+            throw new JwtTokenVerificationException(TOKEN_CANNOT_BE_VERIFIED);
         }
 
         return authentication;
