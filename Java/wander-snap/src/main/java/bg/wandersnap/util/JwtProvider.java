@@ -1,16 +1,14 @@
 package bg.wandersnap.util;
 
+import bg.wandersnap.annotation.VerifyRsaKeysIntegrity;
 import bg.wandersnap.dao.UserRepository;
-import bg.wandersnap.exception.security.RsaKeyIntegrityViolationException;
 import bg.wandersnap.exception.user.UserNotFoundException;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
-import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.RSAKeyProvider;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -18,36 +16,29 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static bg.wandersnap.common.ExceptionMessages.TOKEN_CANNOT_BE_VERIFIED;
 import static bg.wandersnap.common.JwtConstants.*;
 import static java.util.Arrays.stream;
 
 @Component
-public final class JwtProvider {
+public class JwtProvider {
     private final UserDetailsService userDetailsService;
     private final UserRepository userRepository;
     private final RSAKeyProvider rsaKeyProvider;
-    private final RsaKeyIntegrityVerifier rsaKeyIntegrityVerifier;
 
-    public JwtProvider(final UserDetailsService userDetailsService, @Lazy final UserRepository userRepository,
-                       final RSAKeyProvider rsaKeyProvider, final RsaKeyIntegrityVerifier rsaKeyIntegrityVerifier) {
+    public JwtProvider(final UserDetailsService userDetailsService, final UserRepository userRepository,
+                       final RSAKeyProvider rsaKeyProvider) {
         this.userDetailsService = userDetailsService;
         this.userRepository = userRepository;
         this.rsaKeyProvider = rsaKeyProvider;
-        this.rsaKeyIntegrityVerifier = rsaKeyIntegrityVerifier;
     }
 
-    public String generateToken(@CurrentSecurityContext(expression = "authentication.principal") final UserDetails userDetails)
-            throws IOException, NoSuchAlgorithmException, RsaKeyIntegrityViolationException {
-
-        this.rsaKeyIntegrityVerifier.verifyRsaKeysIntegrity();
+    @VerifyRsaKeysIntegrity
+    public String generateToken(@CurrentSecurityContext(expression = "authentication.principal") final UserDetails userDetails) {
         final String[] claims = getClaimsFromUser(userDetails);
         try {
             final Algorithm algorithm = Algorithm.RSA256(this.rsaKeyProvider);
@@ -58,7 +49,7 @@ public final class JwtProvider {
                     .withSubject(userDetails.getUsername())
                     .withArrayClaim(AUTHORITIES, claims)
                     .withClaim(ROLES, getRole(userDetails.getUsername()))
-                    .withExpiresAt(new Date(System.currentTimeMillis() + TOKEN_EXPIRATION_TIME))
+                    .withExpiresAt(new Date(System.currentTimeMillis() + TOKEN_EXPIRATION_TIME_IN_MS))
                     .sign(algorithm);
         } catch (final JWTCreationException exception) {
             throw new JWTCreationException(exception.getMessage(), exception.getCause());
@@ -97,14 +88,14 @@ public final class JwtProvider {
         return expiration.before(new Date());
     }
 
-    private JWTVerifier getJwtVerifier() {
-        try {
-            final Algorithm algorithm = Algorithm.RSA256(this.rsaKeyProvider);
-            return JWT.require(algorithm)
-                    .withIssuer(TOKEN_ISSUER).build();
-        } catch (final JWTVerificationException exception) {
-            throw new JWTVerificationException(TOKEN_CANNOT_BE_VERIFIED);
-        }
+    @VerifyRsaKeysIntegrity
+    public JWTVerifier getJwtVerifier() {
+        final Algorithm algorithm = Algorithm.RSA256(this.rsaKeyProvider);
+        return JWT.require(algorithm)
+                .withAudience(TOKEN_AUDIENCE)
+                .withIssuer(TOKEN_ISSUER)
+                .acceptNotBefore(System.currentTimeMillis() - TOKEN_EXPIRATION_TIME_IN_MS)
+                .build();
     }
 
     @SuppressWarnings("unused")
@@ -113,7 +104,9 @@ public final class JwtProvider {
         return jwtVerifier.verify(token).getClaim(AUTHORITIES).asArray(String.class);
     }
 
-    private String[] getClaimsFromUser(@CurrentSecurityContext(expression = "authentication.principal") final UserDetails userDetails) {
+    private String[] getClaimsFromUser(@CurrentSecurityContext(expression = "authentication.principal")
+                                       final UserDetails userDetails) {
+
         return userDetails.getAuthorities()
                 .stream()
                 .map(GrantedAuthority::getAuthority)
