@@ -1,4 +1,4 @@
-package bg.wandersnap.util;
+package bg.wandersnap.security;
 
 import com.auth0.jwt.interfaces.RSAKeyProvider;
 import lombok.AllArgsConstructor;

@@ -2,9 +2,12 @@ package bg.wandersnap.service;
 
 import bg.wandersnap.common.ExceptionMessages;
 import bg.wandersnap.dao.UserRepository;
+import bg.wandersnap.model.Authority;
 import bg.wandersnap.model.Role;
 import bg.wandersnap.model.User;
+import jakarta.transaction.Transactional;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -13,6 +16,7 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Transactional(Transactional.TxType.REQUIRES_NEW)
 public class UserDetailsServiceImpl implements UserDetailsService {
     private final UserRepository userRepository;
 
@@ -44,6 +48,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private Set<GrantedAuthority> mapAuthorities(final Set<Role> roles) {
         return roles.stream()
                 .flatMap(role -> role.getAuthorities().stream())
+                .map(Authority::getAuthority)
+                .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toSet());
     }
 }

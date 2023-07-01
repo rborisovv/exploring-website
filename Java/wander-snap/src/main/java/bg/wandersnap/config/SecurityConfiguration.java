@@ -1,10 +1,10 @@
 package bg.wandersnap.config;
 
 import bg.wandersnap.dao.UserRepository;
-import bg.wandersnap.enumeration.RoleEnum;
 import bg.wandersnap.httpFilter.JwtAuthFilter;
+import bg.wandersnap.security.JwtAuthenticationProvider;
+import bg.wandersnap.security.RsaKeyProviderFactory;
 import bg.wandersnap.service.UserDetailsServiceImpl;
-import bg.wandersnap.util.RsaKeyProviderFactory;
 import com.auth0.jwt.interfaces.RSAKeyProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Bean;
@@ -19,18 +19,16 @@ import org.springframework.security.access.expression.method.MethodSecurityExpre
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -67,11 +65,16 @@ public class SecurityConfiguration {
     private final UserRepository userRepository;
     private final ResourceLoader resourceLoader;
     private final JwtAuthFilter jwtAuthFilter;
+    private final JwtAuthenticationProvider jwtAuthenticationProvider;
 
-    public SecurityConfiguration(final UserRepository userRepository, final ResourceLoader resourceLoader, final @Lazy JwtAuthFilter jwtAuthFilter) {
+    public SecurityConfiguration(final UserRepository userRepository,
+                                 final ResourceLoader resourceLoader,
+                                 final @Lazy JwtAuthFilter jwtAuthFilter,
+                                 final JwtAuthenticationProvider jwtAuthenticationProvider) {
         this.userRepository = userRepository;
         this.resourceLoader = resourceLoader;
         this.jwtAuthFilter = jwtAuthFilter;
+        this.jwtAuthenticationProvider = jwtAuthenticationProvider;
     }
 
     @Bean
@@ -105,9 +108,23 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    AuthenticationManager authenticationManager(final AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+    AuthenticationManager authManager(final HttpSecurity http) throws Exception {
+        final AuthenticationManagerBuilder authenticationManagerBuilder =
+                http.getSharedObject(AuthenticationManagerBuilder.class);
+        authenticationManagerBuilder.authenticationProvider(jwtAuthenticationProvider);
+
+        final DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
+        daoAuthenticationProvider.setUserDetailsService(this.userDetailsService());
+        daoAuthenticationProvider.setPasswordEncoder(this.passwordEncoder());
+        authenticationManagerBuilder.authenticationProvider(daoAuthenticationProvider);
+
+        return authenticationManagerBuilder.build();
     }
+
+//    @Bean
+//    AuthenticationManager authenticationManager(final AuthenticationConfiguration authenticationConfiguration) throws Exception {
+//        return authenticationConfiguration.getAuthenticationManager();
+//    }
 
     @Bean
     CorsFilter corsFilter() {
@@ -150,18 +167,6 @@ public class SecurityConfiguration {
     @Profile("Production")
     UserDetailsService userDetailsService() {
         return new UserDetailsServiceImpl(this.userRepository);
-    }
-
-    @Bean
-    @Profile("Development")
-    UserDetailsService inMemoryUserDetailsService() {
-        final UserDetails userDetails = User.builder()
-                .username("username")
-                .password(this.passwordEncoder().encode("password"))
-                .roles(RoleEnum.ADMIN.name(), RoleEnum.USER.name())
-                .build();
-
-        return new InMemoryUserDetailsManager(userDetails);
     }
 
     @Bean

@@ -1,4 +1,4 @@
-package bg.wandersnap.util;
+package bg.wandersnap.security;
 
 import bg.wandersnap.exception.security.RsaKeyIntegrityViolationException;
 import org.springframework.core.io.Resource;
