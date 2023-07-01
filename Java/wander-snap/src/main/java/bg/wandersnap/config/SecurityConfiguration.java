@@ -121,11 +121,6 @@ public class SecurityConfiguration {
         return authenticationManagerBuilder.build();
     }
 
-//    @Bean
-//    AuthenticationManager authenticationManager(final AuthenticationConfiguration authenticationConfiguration) throws Exception {
-//        return authenticationConfiguration.getAuthenticationManager();
-//    }
-
     @Bean
     CorsFilter corsFilter() {
         final UrlBasedCorsConfigurationSource urlBasedCorsConfigurationSource = new UrlBasedCorsConfigurationSource();
