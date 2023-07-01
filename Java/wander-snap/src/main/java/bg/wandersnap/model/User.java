@@ -1,5 +1,6 @@
 package bg.wandersnap.model;
 
+import bg.wandersnap.enumeration.GdprConsentEnum;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -38,6 +39,9 @@ public class User extends BaseEntity implements Serializable {
 
     @ManyToMany
     private Set<Role> roles;
+
+    @Enumerated(EnumType.STRING)
+    private Set<GdprConsentEnum> gdprConsent;
 
     @Column(nullable = false)
     private LocalDate joinDate;
