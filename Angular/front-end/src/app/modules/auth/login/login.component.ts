@@ -16,6 +16,7 @@ import { AuthService } from "../../../services/auth.service";
 import { UserLoginModel } from "../../../model/auth/user.login.model";
 import { GdprSectionsModel } from "../../../model/auth/gdpr.sections.model";
 import { take } from "rxjs";
+import { Router } from "@angular/router";
 
 @Component({
   selector: 'app-login',
@@ -49,7 +50,8 @@ export class LoginComponent implements OnInit {
   });
 
   constructor(private renderer: Renderer2,
-              private authService: AuthService) {
+              private authService: AuthService,
+              private router: Router) {
   }
 
   ngOnInit(): void {
@@ -132,6 +134,8 @@ export class LoginComponent implements OnInit {
 
     this.authService.loginUser(loginData).pipe(
       take(1))
-      .subscribe();
+      .subscribe(() => {
+        this.router.navigate(['/']);
+      });
   }
 }
