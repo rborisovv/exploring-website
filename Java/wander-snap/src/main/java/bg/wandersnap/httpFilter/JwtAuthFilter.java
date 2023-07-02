@@ -56,17 +56,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         final String token = authorizationHeaders.substring(TOKEN_PREFIX.length());
         final SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
 
-        if (jwtProvider.isTokenValid(token)) {
-            final Set<GrantedAuthority> authorities = jwtProvider.getAuthorities(token);
-            final String username = jwtProvider.getSubject(token);
-            final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            final Authentication authToken = new JwtAuthenticationToken(userDetails, token, authorities);
-            final Authentication authentication = this.authenticationManager.authenticate(authToken);
-            securityContext.setAuthentication(authentication);
-            SecurityContextHolder.setContext(securityContext);
-        } else {
-            SecurityContextHolder.clearContext();
-        }
+        final Set<GrantedAuthority> authorities = jwtProvider.getAuthorities(token);
+        final String username = jwtProvider.getSubject(token);
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        final Authentication authToken = new JwtAuthenticationToken(userDetails, token, authorities);
+        final Authentication authentication = this.authenticationManager.authenticate(authToken);
+
+        securityContext.setAuthentication(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
         filterChain.doFilter(requestWrapper, response);
     }
 }

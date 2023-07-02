@@ -2,6 +2,7 @@ package bg.wandersnap.security;
 
 import bg.wandersnap.annotation.VerifyRsaKeysIntegrity;
 import bg.wandersnap.exception.security.JwtTokenVerificationException;
+import bg.wandersnap.exception.security.TokenExpiredException;
 import bg.wandersnap.util.JwtProvider;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.exceptions.JWTVerificationException;
@@ -12,6 +13,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 
 import static bg.wandersnap.common.ExceptionMessages.TOKEN_CANNOT_BE_VERIFIED;
+import static bg.wandersnap.common.ExceptionMessages.TOKEN_EXPIRED;
 
 @Component
 public class JwtAuthenticationProvider implements AuthenticationProvider {
@@ -27,6 +29,8 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         final String jwtTokenCredentials = (String) authentication.getCredentials();
         final JWTVerifier jwtVerifier = this.jwtProvider.getJwtVerifier();
 
+        tokenPreAuthenticationChecks(jwtTokenCredentials);
+
         try {
             jwtVerifier.verify(jwtTokenCredentials);
         } catch (final JWTVerificationException ex) {
@@ -34,6 +38,12 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         }
 
         return authentication;
+    }
+
+    private void tokenPreAuthenticationChecks(final String token) {
+        if (this.jwtProvider.isExpiredToken(token)) {
+            throw new TokenExpiredException(TOKEN_EXPIRED);
+        }
     }
 
     @Override

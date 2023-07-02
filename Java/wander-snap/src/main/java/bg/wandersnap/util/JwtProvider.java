@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -49,6 +50,7 @@ public class JwtProvider {
                     .withSubject(userDetails.getUsername())
                     .withArrayClaim(AUTHORITIES, claims)
                     .withClaim(ROLES, getRole(userDetails.getUsername()))
+                    .withNotBefore(Instant.now().minusMillis(TOKEN_EXPIRATION_TIME_IN_MS))
                     .withExpiresAt(new Date(System.currentTimeMillis() + TOKEN_EXPIRATION_TIME_IN_MS))
                     .sign(algorithm);
         } catch (final JWTCreationException exception) {
@@ -71,7 +73,7 @@ public class JwtProvider {
         return jwtVerifier.verify(token).getSubject();
     }
 
-    public boolean isTokenValid(final String token) {
+    public boolean isExpiredToken(final String token) {
         final JWTVerifier jwtVerifier = getJwtVerifier();
         final String subject = getSubject(token);
         return StringUtils.isNotBlank(subject) && !isTokenExpired(jwtVerifier, token);
@@ -80,7 +82,7 @@ public class JwtProvider {
     public Set<GrantedAuthority> getAuthorities(final String token) {
         final String username = this.getSubject(token);
         final String[] claims = getClaimsFromUser(username);
-        return stream(claims).map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
+        return stream(claims).map(SimpleGrantedAuthority::new).collect(Collectors.toUnmodifiableSet());
     }
 
     private boolean isTokenExpired(final JWTVerifier jwtVerifier, final String token) {
@@ -104,8 +106,7 @@ public class JwtProvider {
         return jwtVerifier.verify(token).getClaim(AUTHORITIES).asArray(String.class);
     }
 
-    private String[] getClaimsFromUser(@CurrentSecurityContext(expression = "authentication.principal")
-                                       final UserDetails userDetails) {
+    private String[] getClaimsFromUser(@CurrentSecurityContext(expression = "authentication.principal") final UserDetails userDetails) {
 
         return userDetails.getAuthorities()
                 .stream()
