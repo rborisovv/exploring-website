@@ -1,8 +1,8 @@
 package bg.wandersnap.util;
 
-import bg.wandersnap.annotation.VerifyRsaKeysIntegrity;
 import bg.wandersnap.dao.UserRepository;
 import bg.wandersnap.exception.user.UserNotFoundException;
+import bg.wandersnap.security.RsaInMemoryKeyProvider;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -29,20 +29,21 @@ import static java.util.Arrays.stream;
 public class JwtProvider {
     private final UserDetailsService userDetailsService;
     private final UserRepository userRepository;
-    private final RSAKeyProvider rsaKeyProvider;
+    private final RsaInMemoryKeyProvider rsaInMemoryKeyProvider;
 
     public JwtProvider(final UserDetailsService userDetailsService, final UserRepository userRepository,
-                       final RSAKeyProvider rsaKeyProvider) {
+                       final RSAKeyProvider rsaKeyProvider, final RsaInMemoryKeyProvider rsaInMemoryKeyProvider) {
         this.userDetailsService = userDetailsService;
         this.userRepository = userRepository;
-        this.rsaKeyProvider = rsaKeyProvider;
+        this.rsaInMemoryKeyProvider = rsaInMemoryKeyProvider;
     }
 
-    @VerifyRsaKeysIntegrity
     public String generateToken(@CurrentSecurityContext(expression = "authentication.principal") final UserDetails userDetails) {
         final String[] claims = getClaimsFromUser(userDetails);
         try {
-            final Algorithm algorithm = Algorithm.RSA256(this.rsaKeyProvider);
+            final Algorithm algorithm = Algorithm.RSA256(this.rsaInMemoryKeyProvider.getRsaPublicKey(),
+                    this.rsaInMemoryKeyProvider.getRsaPrivateKey());
+
             return JWT.create()
                     .withIssuer(TOKEN_ISSUER)
                     .withAudience(TOKEN_AUDIENCE)
@@ -90,9 +91,10 @@ public class JwtProvider {
         return expiration.before(new Date());
     }
 
-    @VerifyRsaKeysIntegrity
     public JWTVerifier getJwtVerifier() {
-        final Algorithm algorithm = Algorithm.RSA256(this.rsaKeyProvider);
+        final Algorithm algorithm = Algorithm.RSA256(this.rsaInMemoryKeyProvider.getRsaPublicKey(),
+                this.rsaInMemoryKeyProvider.getRsaPrivateKey());
+
         return JWT.require(algorithm)
                 .withAudience(TOKEN_AUDIENCE)
                 .withIssuer(TOKEN_ISSUER)

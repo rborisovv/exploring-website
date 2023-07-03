@@ -2,15 +2,13 @@ package bg.wandersnap.config;
 
 import bg.wandersnap.dao.UserRepository;
 import bg.wandersnap.httpFilter.JwtAuthFilter;
+import bg.wandersnap.security.CustomAuthenticationEntryPoint;
 import bg.wandersnap.security.JwtAuthenticationProvider;
 import bg.wandersnap.security.RsaKeyProviderFactory;
 import bg.wandersnap.service.UserDetailsServiceImpl;
 import com.auth0.jwt.interfaces.RSAKeyProvider;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.*;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpMethod;
@@ -42,8 +40,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
@@ -101,6 +98,9 @@ public class SecurityConfiguration {
                         .anyRequest()
                         .authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
+                        httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(
+                                new CustomAuthenticationEntryPoint()))
                 .build();
     }
 
@@ -166,7 +166,7 @@ public class SecurityConfiguration {
         return new UserDetailsServiceImpl(this.userRepository);
     }
 
-    @Bean
+    @Bean("classPathRsaKeyProvider")
     RSAKeyProvider rsaKeyProvider() throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
         final Resource privateKeyPath = resourceLoader.getResource("classpath:keys/private_key.pem");
         final Resource publicKeyPath = resourceLoader.getResource("classpath:keys/public_key.pem");

@@ -2,14 +2,18 @@ package bg.wandersnap.httpFilter;
 
 import bg.wandersnap.security.JwtAuthenticationToken;
 import bg.wandersnap.util.JwtProvider;
+import com.auth0.jwt.exceptions.SignatureVerificationException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -56,15 +60,21 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         final String token = authorizationHeaders.substring(TOKEN_PREFIX.length());
         final SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
 
-        final Set<GrantedAuthority> authorities = jwtProvider.getAuthorities(token);
-        final String username = jwtProvider.getSubject(token);
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        final Authentication authToken = new JwtAuthenticationToken(userDetails, token, authorities);
-        final Authentication authentication = this.authenticationManager.authenticate(authToken);
-
-        securityContext.setAuthentication(authentication);
-        SecurityContextHolder.setContext(securityContext);
-
-        filterChain.doFilter(requestWrapper, response);
+        try {
+            final Set<GrantedAuthority> authorities = this.jwtProvider.getAuthorities(token);
+            final String username = this.jwtProvider.getSubject(token);
+            final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            final Authentication authToken = new JwtAuthenticationToken(userDetails, token, authorities);
+            final Authentication authentication = this.authenticationManager.authenticate(authToken);
+            securityContext.setAuthentication(authentication);
+            SecurityContextHolder.setContext(securityContext);
+        } catch (final AuthenticationException ex) {
+            SecurityContextHolder.clearContext();
+            throw new BadCredentialsException(ex.getMessage());
+        } catch (final SignatureVerificationException ex) {
+            response.sendError(HttpStatus.UNAUTHORIZED.value());
+        } finally {
+            filterChain.doFilter(requestWrapper, response);
+        }
     }
 }
