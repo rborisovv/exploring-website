@@ -71,6 +71,7 @@ public class SecurityConfiguration {
                                  final ResourceLoader resourceLoader,
                                  final @Lazy JwtAuthFilter jwtAuthFilter,
                                  final JwtAuthenticationProvider jwtAuthenticationProvider) {
+
         this.userRepository = userRepository;
         this.resourceLoader = resourceLoader;
         this.jwtAuthFilter = jwtAuthFilter;
@@ -80,7 +81,8 @@ public class SecurityConfiguration {
     @Bean
     SecurityFilterChain filterChain(final HttpSecurity httpSecurity) throws Exception {
         final CookieCsrfTokenRepository tokenRepository = new CookieCsrfTokenRepository();
-        tokenRepository.setCookieHttpOnly(false);
+        tokenRepository.setCookieCustomizer(responseCookieBuilder -> responseCookieBuilder.httpOnly(false).build());
+
         final XorCsrfTokenRequestAttributeHandler delegate = new XorCsrfTokenRequestAttributeHandler();
 
         delegate.setCsrfRequestAttributeName(null);
