@@ -2,7 +2,7 @@ package bg.wandersnap.config;
 
 import bg.wandersnap.dao.UserRepository;
 import bg.wandersnap.httpFilter.JwtAuthFilter;
-import bg.wandersnap.security.CustomAuthenticationEntryPoint;
+import bg.wandersnap.security.UnauthorizedAuthenticationEntryPoint;
 import bg.wandersnap.security.JwtAuthenticationProvider;
 import bg.wandersnap.security.RsaKeyProviderFactory;
 import bg.wandersnap.service.UserDetailsServiceImpl;
@@ -100,7 +100,7 @@ public class SecurityConfiguration {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
                         httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(
-                                new CustomAuthenticationEntryPoint()))
+                                new UnauthorizedAuthenticationEntryPoint()))
                 .build();
     }
 
