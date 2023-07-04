@@ -9,6 +9,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.interfaces.RSAKeyProvider;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -17,6 +18,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -30,15 +32,19 @@ public class JwtProvider {
     private final UserDetailsService userDetailsService;
     private final UserRepository userRepository;
     private final RsaInMemoryKeyProvider rsaInMemoryKeyProvider;
+    @Qualifier("classPathRsaKeyProvider")
+    private final RSAKeyProvider rsaKeyProvider;
 
     public JwtProvider(final UserDetailsService userDetailsService, final UserRepository userRepository,
-                       final RSAKeyProvider rsaKeyProvider, final RsaInMemoryKeyProvider rsaInMemoryKeyProvider) {
+                       final RsaInMemoryKeyProvider rsaInMemoryKeyProvider, final RSAKeyProvider rsaKeyProvider) {
         this.userDetailsService = userDetailsService;
         this.userRepository = userRepository;
         this.rsaInMemoryKeyProvider = rsaInMemoryKeyProvider;
+        this.rsaKeyProvider = rsaKeyProvider;
     }
 
-    public String generateToken(@CurrentSecurityContext(expression = "authentication.principal") final UserDetails userDetails) {
+    public String generateAccessToken(@CurrentSecurityContext(expression = "authentication.principal") final UserDetails userDetails) {
+
         final String[] claims = getClaimsFromUser(userDetails);
         try {
             final Algorithm algorithm = Algorithm.RSA256(this.rsaInMemoryKeyProvider.getRsaPublicKey(),
@@ -47,13 +53,30 @@ public class JwtProvider {
             return JWT.create()
                     .withIssuer(TOKEN_ISSUER)
                     .withAudience(TOKEN_AUDIENCE)
-                    .withIssuedAt(new Date())
+                    .withIssuedAt(Instant.now())
                     .withSubject(userDetails.getUsername())
                     .withArrayClaim(AUTHORITIES, claims)
                     .withClaim(ROLES, getRole(userDetails.getUsername()))
-                    .withNotBefore(Instant.now().minusMillis(TOKEN_EXPIRATION_TIME_IN_MS))
-                    .withExpiresAt(new Date(System.currentTimeMillis() + TOKEN_EXPIRATION_TIME_IN_MS))
+                    .withNotBefore(Instant.now().minus(30, ChronoUnit.MINUTES))
+                    .withExpiresAt(Instant.now().plus(30, ChronoUnit.MINUTES))
                     .sign(algorithm);
+        } catch (final JWTCreationException exception) {
+            throw new JWTCreationException(exception.getMessage(), exception.getCause());
+        }
+    }
+
+    public String generateRefreshToken() {
+        try {
+            final Algorithm algorithm = Algorithm.RSA256(this.rsaKeyProvider);
+
+            return JWT.create()
+                    .withIssuer(TOKEN_ISSUER)
+                    .withAudience(TOKEN_AUDIENCE)
+                    .withIssuedAt(Instant.now())
+                    .withNotBefore(Instant.now().minus(30, ChronoUnit.DAYS))
+                    .withExpiresAt(Instant.now().plus(30, ChronoUnit.DAYS))
+                    .sign(algorithm);
+
         } catch (final JWTCreationException exception) {
             throw new JWTCreationException(exception.getMessage(), exception.getCause());
         }

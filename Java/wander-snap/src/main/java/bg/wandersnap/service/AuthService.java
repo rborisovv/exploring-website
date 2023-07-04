@@ -22,8 +22,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static bg.wandersnap.common.JwtConstants.JWT_COOKIE_NAME;
-import static bg.wandersnap.common.JwtConstants.TOKEN_EXPIRATION_TIME_IN_S;
+import static bg.wandersnap.common.JwtConstants.*;
 import static bg.wandersnap.common.Symbols.FORWARD_SLASH;
 
 @Service
@@ -71,16 +70,25 @@ public class AuthService {
         userGdprConsentCollection.addAll(gdprConsent);
         this.userRepository.save(user);
 
-        final String jwtToken = this.jwtProvider.generateToken(userDetails);
-        final Cookie jwtCookie = new Cookie(JWT_COOKIE_NAME, jwtToken);
+        final String accessToken = this.jwtProvider.generateAccessToken(userDetails);
+        final Cookie accessTokenCookie = generateTokenCookie(accessToken, ACCESS_TOKEN_NAME, ACCESS_TOKEN_EXPIRATION_TIME_IN_S);
 
-        jwtCookie.setHttpOnly(false);
-        jwtCookie.setSecure(false);
-        jwtCookie.setMaxAge(TOKEN_EXPIRATION_TIME_IN_S);
-        jwtCookie.setPath(FORWARD_SLASH);
+        final String refreshToken = this.jwtProvider.generateRefreshToken();
+        final Cookie refreshTokenCookie = generateTokenCookie(refreshToken, REFRESH_TOKEN_NAME, REFRESH_TOKEN_EXPIRATION_TIME_IN_S);
 
-        response.addCookie(jwtCookie);
+        response.addCookie(accessTokenCookie);
+        response.addCookie(refreshTokenCookie);
 
         return new HttpGenericResponse();
+    }
+
+    private static Cookie generateTokenCookie(final String token, final String cookieName, final int cookieExpTime) {
+        final Cookie cookie = new Cookie(cookieName, token);
+        cookie.setHttpOnly(false);
+        cookie.setSecure(false);
+        cookie.setMaxAge(cookieExpTime);
+        cookie.setPath(FORWARD_SLASH);
+
+        return cookie;
     }
 }

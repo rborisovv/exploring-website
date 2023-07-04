@@ -26,7 +26,7 @@ import org.springframework.web.util.ContentCachingRequestWrapper;
 import java.io.IOException;
 import java.util.Set;
 
-import static bg.wandersnap.common.JwtConstants.JWT_COOKIE_NAME;
+import static bg.wandersnap.common.JwtConstants.ACCESS_TOKEN_HEADER_NAME;
 import static bg.wandersnap.common.JwtConstants.TOKEN_PREFIX;
 
 @Component
@@ -50,7 +50,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             filterChain.doFilter(requestWrapper, response);
         }
 
-        final String authorizationHeaders = requestWrapper.getHeader(JWT_COOKIE_NAME);
+        final String authorizationHeaders = requestWrapper.getHeader(ACCESS_TOKEN_HEADER_NAME);
 
         if (authorizationHeaders == null || !authorizationHeaders.startsWith(TOKEN_PREFIX)) {
             filterChain.doFilter(requestWrapper, response);

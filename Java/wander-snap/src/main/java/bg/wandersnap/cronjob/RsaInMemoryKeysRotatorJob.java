@@ -9,15 +9,15 @@ import java.security.spec.InvalidKeySpecException;
 
 @Component
 public class RsaInMemoryKeysRotatorJob {
+    private static final int TIME_TO_ROTATE_ACCESS_TOKEN_KEYS = 1_800;
     private final RsaInMemoryKeyProvider rsaInMemoryKeyProvider;
 
     public RsaInMemoryKeysRotatorJob(final RsaInMemoryKeyProvider rsaInMemoryKeyProvider) {
         this.rsaInMemoryKeyProvider = rsaInMemoryKeyProvider;
     }
 
-    @Scheduled(fixedRate = 5000, initialDelay = 5000)
+    @Scheduled(fixedRate = TIME_TO_ROTATE_ACCESS_TOKEN_KEYS)
     public void rotateAccessTokenInMemoryRsaKeys() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        System.out.println("Rotated");
         this.rsaInMemoryKeyProvider.rotateInMemoryKeys();
     }
 }

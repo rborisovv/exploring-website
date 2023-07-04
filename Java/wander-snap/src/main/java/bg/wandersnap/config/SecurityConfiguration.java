@@ -130,10 +130,10 @@ public class SecurityConfiguration {
         corsConfiguration.setAllowCredentials(true);
         corsConfiguration.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
         corsConfiguration.setAllowedHeaders(Arrays.asList("Origin", "Access-Control-Allow-Origin", "Content-Type",
-                "Accept", "Jwt-Token", "Authorization", "X-Request-With", "Access-Control-Request-Method",
+                "Accept", "X-Access-Token", "X-Refresh-Token", "Authorization", "X-Request-With", "Access-Control-Request-Method",
                 "Access-Control-Request-Headers", "XSRF-TOKEN", "X-XSRF-TOKEN"));
-        corsConfiguration.setExposedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "Jwt-Token", "Authorization",
-                "Access-Control-Allow-Origin", "Access-Control-Allow-Credentials", "XSRF-TOKEN", "X-XSRF-TOKEN"));
+        corsConfiguration.setExposedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "X-Access-Token", "X-Refresh-Token",
+                "Authorization", "Access-Control-Allow-Origin", "Access-Control-Allow-Credentials", "XSRF-TOKEN", "X-XSRF-TOKEN"));
         corsConfiguration.setAllowedMethods(Arrays.asList(
                 HttpMethod.GET.name(), HttpMethod.POST.name(),
                 HttpMethod.PUT.name(), HttpMethod.PATCH.name(),
@@ -183,7 +183,6 @@ public class SecurityConfiguration {
         final RSAPublicKey publicKey = (RSAPublicKey) keyFactory.generatePublic(publicSpec);
         return new RsaKeyProviderFactory(privateKey, publicKey);
     }
-
 
     private byte[] decodeRsaKeyContent(final byte[] rsaKeyBytes) {
         final String rsaKeyContent = new String(rsaKeyBytes, StandardCharsets.UTF_8)
