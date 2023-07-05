@@ -12,10 +12,10 @@ import java.security.NoSuchAlgorithmException;
 
 @Aspect
 @Component
-public class RsaKeyIntegrityVerifierAspect {
+public class RsaRefreshKeyIntegrityVerifierAspect {
     private final RsaKeyIntegrityVerifier rsaKeyIntegrityVerifier;
 
-    public RsaKeyIntegrityVerifierAspect(final RsaKeyIntegrityVerifier rsaKeyIntegrityVerifier) {
+    public RsaRefreshKeyIntegrityVerifierAspect(final RsaKeyIntegrityVerifier rsaKeyIntegrityVerifier) {
         this.rsaKeyIntegrityVerifier = rsaKeyIntegrityVerifier;
     }
 

@@ -2,9 +2,13 @@ package bg.wandersnap.httpFilter;
 
 import bg.wandersnap.security.JwtAuthenticationToken;
 import bg.wandersnap.util.JwtProvider;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.SignatureVerificationException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpMethod;
@@ -26,8 +30,8 @@ import org.springframework.web.util.ContentCachingRequestWrapper;
 import java.io.IOException;
 import java.util.Set;
 
-import static bg.wandersnap.common.JwtConstants.ACCESS_TOKEN_HEADER_NAME;
-import static bg.wandersnap.common.JwtConstants.TOKEN_PREFIX;
+import static bg.wandersnap.common.JwtConstants.*;
+import static bg.wandersnap.common.Symbols.FORWARD_SLASH;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -50,14 +54,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             filterChain.doFilter(requestWrapper, response);
         }
 
-        final String authorizationHeaders = requestWrapper.getHeader(ACCESS_TOKEN_HEADER_NAME);
+        final String accessToken = request.getHeader(ACCESS_TOKEN_HEADER_NAME);
+        final String refreshToken = request.getHeader(REFRESH_TOKEN_HEADER_NAME);
 
-        if (authorizationHeaders == null || !authorizationHeaders.startsWith(TOKEN_PREFIX)) {
+        if (accessToken.isBlank() || !accessToken.startsWith(TOKEN_PREFIX)) {
             filterChain.doFilter(requestWrapper, response);
             return;
         }
 
-        final String token = authorizationHeaders.substring(TOKEN_PREFIX.length());
+        final String token = accessToken.substring(TOKEN_PREFIX.length());
         final SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
 
         try {
@@ -68,13 +73,40 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             final Authentication authentication = this.authenticationManager.authenticate(authToken);
             securityContext.setAuthentication(authentication);
             SecurityContextHolder.setContext(securityContext);
+            filterChain.doFilter(request, response);
         } catch (final AuthenticationException ex) {
             SecurityContextHolder.clearContext();
             throw new BadCredentialsException(ex.getMessage());
         } catch (final SignatureVerificationException ex) {
             response.sendError(HttpStatus.UNAUTHORIZED.value());
-        } finally {
-            filterChain.doFilter(requestWrapper, response);
+        } catch (final JWTVerificationException ex) {
+            if (refreshToken.isBlank()) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            final JWTVerifier refreshTokenVerifier = this.jwtProvider.getRefreshTokenVerifier();
+            refreshTokenVerifier.verify(refreshToken);
+            final String subject = JWT.decode(accessToken).getSubject();
+            final UserDetails userDetails = this.userDetailsService.loadUserByUsername(subject);
+            final String newAccessToken = this.jwtProvider.generateAccessToken(userDetails);
+
+            final Cookie cookie = generateTokenCookie(ACCESS_TOKEN_NAME, newAccessToken, ACCESS_TOKEN_EXPIRATION_TIME_IN_S);
+            response.addCookie(cookie);
+
+            //TODO: TEST THIS
+
+            filterChain.doFilter(request, response);
         }
+    }
+
+    private static Cookie generateTokenCookie(final String token, final String cookieName, final int cookieExpTime) {
+        final Cookie cookie = new Cookie(cookieName, token);
+        cookie.setHttpOnly(false);
+        cookie.setSecure(false);
+        cookie.setMaxAge(cookieExpTime);
+        cookie.setPath(FORWARD_SLASH);
+
+        return cookie;
     }
 }

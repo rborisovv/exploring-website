@@ -1,5 +1,6 @@
 package bg.wandersnap.util;
 
+import bg.wandersnap.annotation.VerifyRsaKeysIntegrity;
 import bg.wandersnap.dao.UserRepository;
 import bg.wandersnap.exception.user.UserNotFoundException;
 import bg.wandersnap.security.RsaInMemoryKeyProvider;
@@ -93,12 +94,12 @@ public class JwtProvider {
     }
 
     public String getSubject(final String token) {
-        final JWTVerifier jwtVerifier = getJwtVerifier();
+        final JWTVerifier jwtVerifier = getAccessTokenVerifier();
         return jwtVerifier.verify(token).getSubject();
     }
 
     public boolean isExpiredToken(final String token) {
-        final JWTVerifier jwtVerifier = getJwtVerifier();
+        final JWTVerifier jwtVerifier = getAccessTokenVerifier();
         final String subject = getSubject(token);
         return StringUtils.isNotBlank(subject) && !isTokenExpired(jwtVerifier, token);
     }
@@ -114,20 +115,33 @@ public class JwtProvider {
         return expiration.before(new Date());
     }
 
-    public JWTVerifier getJwtVerifier() {
+    public JWTVerifier getAccessTokenVerifier() {
         final Algorithm algorithm = Algorithm.RSA256(this.rsaInMemoryKeyProvider.getRsaPublicKey(),
                 this.rsaInMemoryKeyProvider.getRsaPrivateKey());
 
         return JWT.require(algorithm)
-                .withAudience(TOKEN_AUDIENCE)
                 .withIssuer(TOKEN_ISSUER)
+                .withAudience(TOKEN_AUDIENCE)
                 .acceptNotBefore(System.currentTimeMillis() - TOKEN_EXPIRATION_TIME_IN_MS)
+                .acceptExpiresAt(System.currentTimeMillis() + TOKEN_EXPIRATION_TIME_IN_MS)
+                .build();
+    }
+
+    @VerifyRsaKeysIntegrity
+    public JWTVerifier getRefreshTokenVerifier() {
+        final Algorithm algorithm = Algorithm.RSA256(this.rsaKeyProvider);
+
+        return JWT.require(algorithm)
+                .withIssuer(TOKEN_ISSUER)
+                .withAudience(TOKEN_AUDIENCE)
+                .acceptNotBefore(System.currentTimeMillis() - REFRESH_TOKEN_EXPIRATION_TIME_IN_S)
+                .acceptExpiresAt(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION_TIME_IN_S)
                 .build();
     }
 
     @SuppressWarnings("unused")
     private String[] getClaimsFromToken(final String token) {
-        final JWTVerifier jwtVerifier = getJwtVerifier();
+        final JWTVerifier jwtVerifier = getAccessTokenVerifier();
         return jwtVerifier.verify(token).getClaim(AUTHORITIES).asArray(String.class);
     }
 

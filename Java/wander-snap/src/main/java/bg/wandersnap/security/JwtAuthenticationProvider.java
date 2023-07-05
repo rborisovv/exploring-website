@@ -27,7 +27,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     @VerifyRsaKeysIntegrity
     public Authentication authenticate(final Authentication authentication) throws AuthenticationException {
         final String jwtTokenCredentials = (String) authentication.getCredentials();
-        final JWTVerifier jwtVerifier = this.jwtProvider.getJwtVerifier();
+        final JWTVerifier jwtVerifier = this.jwtProvider.getAccessTokenVerifier();
 
         tokenPreAuthenticationChecks(jwtTokenCredentials);
 
