@@ -1,5 +1,6 @@
 package bg.wandersnap.config;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
@@ -7,9 +8,12 @@ import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.security.crypto.encrypt.Encryptors;
+import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.templatemode.TemplateMode;
 
+import java.util.Objects;
 import java.util.concurrent.Executor;
 
 @Configuration
@@ -50,5 +54,22 @@ class ApplicationBeanConfiguration {
         executor.setThreadNamePrefix("wander-snap-");
         executor.initialize();
         return executor;
+    }
+
+    @Bean
+    Dotenv dotenv() {
+        return Dotenv.configure()
+                .directory("src/main/resources/env")
+                .filename("variables.env")
+                .load();
+    }
+
+    @Bean
+    TextEncryptor textEncryptor(final Dotenv variableLoader) {
+
+        return Encryptors.delux(
+                Objects.requireNonNull(variableLoader.get("REFRESH_TOKEN_ENCRYPTION_PASSWORD")),
+                Objects.requireNonNull(variableLoader.get("REFRESH_TOKEN_ENCRYPTION_SALT"))
+        );
     }
 }

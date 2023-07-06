@@ -1,10 +1,12 @@
 package bg.wandersnap.service;
 
+import bg.wandersnap.dao.RefreshTokenRepository;
 import bg.wandersnap.dao.UserRepository;
 import bg.wandersnap.domain.HttpGenericResponse;
 import bg.wandersnap.dto.UserLoginDto;
 import bg.wandersnap.enumeration.GdprConsentEnum;
 import bg.wandersnap.exception.user.UserNotFoundException;
+import bg.wandersnap.model.RefreshToken;
 import bg.wandersnap.model.User;
 import bg.wandersnap.util.JwtProvider;
 import jakarta.servlet.http.Cookie;
@@ -16,13 +18,17 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static bg.wandersnap.common.JwtConstants.*;
+import static bg.wandersnap.common.JwtConstants.ACCESS_TOKEN_EXPIRATION_TIME_IN_S;
+import static bg.wandersnap.common.JwtConstants.ACCESS_TOKEN_NAME;
 import static bg.wandersnap.common.Symbols.FORWARD_SLASH;
 
 @Service
@@ -31,12 +37,16 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
+    private final TextEncryptor textEncryptor;
+    private final RefreshTokenRepository refreshTokenRepository;
 
-    public AuthService(final UserDetailsService userDetailsService, final AuthenticationManager authenticationManager, final UserRepository userRepository, final JwtProvider jwtProvider) {
+    public AuthService(final UserDetailsService userDetailsService, final AuthenticationManager authenticationManager, final UserRepository userRepository, final JwtProvider jwtProvider, final TextEncryptor textEncryptor, final RefreshTokenRepository refreshTokenRepository) {
         this.userDetailsService = userDetailsService;
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.jwtProvider = jwtProvider;
+        this.textEncryptor = textEncryptor;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
 
@@ -68,16 +78,21 @@ public class AuthService {
             userGdprConsentCollection = new HashSet<>();
         }
         userGdprConsentCollection.addAll(gdprConsent);
+
+        final RefreshToken refreshToken = RefreshToken.builder()
+                .token(this.textEncryptor.encrypt(UUID.randomUUID().toString()))
+                .expirationTime(LocalDateTime.now().plusDays(7))
+                .user(user)
+                .build();
+
+
         this.userRepository.save(user);
+        this.refreshTokenRepository.save(refreshToken);
 
         final String accessToken = this.jwtProvider.generateAccessToken(userDetails);
         final Cookie accessTokenCookie = generateTokenCookie(accessToken, ACCESS_TOKEN_NAME, ACCESS_TOKEN_EXPIRATION_TIME_IN_S);
 
-        final String refreshToken = this.jwtProvider.generateRefreshToken();
-        final Cookie refreshTokenCookie = generateTokenCookie(refreshToken, REFRESH_TOKEN_NAME, REFRESH_TOKEN_EXPIRATION_TIME_IN_S);
-
         response.addCookie(accessTokenCookie);
-        response.addCookie(refreshTokenCookie);
 
         return new HttpGenericResponse();
     }

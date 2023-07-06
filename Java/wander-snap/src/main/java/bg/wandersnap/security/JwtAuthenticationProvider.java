@@ -1,6 +1,5 @@
 package bg.wandersnap.security;
 
-import bg.wandersnap.annotation.VerifyRsaKeysIntegrity;
 import bg.wandersnap.exception.security.JwtTokenVerificationException;
 import bg.wandersnap.exception.security.TokenExpiredException;
 import bg.wandersnap.util.JwtProvider;
@@ -24,7 +23,6 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     }
 
     @Override
-    @VerifyRsaKeysIntegrity
     public Authentication authenticate(final Authentication authentication) throws AuthenticationException {
         final String jwtTokenCredentials = (String) authentication.getCredentials();
         final JWTVerifier jwtVerifier = this.jwtProvider.getAccessTokenVerifier();

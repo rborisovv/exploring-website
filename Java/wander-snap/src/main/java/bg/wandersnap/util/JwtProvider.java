@@ -1,6 +1,5 @@
 package bg.wandersnap.util;
 
-import bg.wandersnap.annotation.VerifyRsaKeysIntegrity;
 import bg.wandersnap.dao.UserRepository;
 import bg.wandersnap.exception.user.UserNotFoundException;
 import bg.wandersnap.security.RsaInMemoryKeyProvider;
@@ -66,23 +65,6 @@ public class JwtProvider {
         }
     }
 
-    public String generateRefreshToken() {
-        try {
-            final Algorithm algorithm = Algorithm.RSA256(this.rsaKeyProvider);
-
-            return JWT.create()
-                    .withIssuer(TOKEN_ISSUER)
-                    .withAudience(TOKEN_AUDIENCE)
-                    .withIssuedAt(Instant.now())
-                    .withNotBefore(Instant.now().minus(30, ChronoUnit.DAYS))
-                    .withExpiresAt(Instant.now().plus(30, ChronoUnit.DAYS))
-                    .sign(algorithm);
-
-        } catch (final JWTCreationException exception) {
-            throw new JWTCreationException(exception.getMessage(), exception.getCause());
-        }
-    }
-
     private List<String> getRole(final String username) {
         try {
             return this.userRepository.findByUsername(username).orElseThrow(UserNotFoundException::new)
@@ -124,18 +106,6 @@ public class JwtProvider {
                 .withAudience(TOKEN_AUDIENCE)
                 .acceptNotBefore(System.currentTimeMillis() - TOKEN_EXPIRATION_TIME_IN_MS)
                 .acceptExpiresAt(System.currentTimeMillis() + TOKEN_EXPIRATION_TIME_IN_MS)
-                .build();
-    }
-
-    @VerifyRsaKeysIntegrity
-    public JWTVerifier getRefreshTokenVerifier() {
-        final Algorithm algorithm = Algorithm.RSA256(this.rsaKeyProvider);
-
-        return JWT.require(algorithm)
-                .withIssuer(TOKEN_ISSUER)
-                .withAudience(TOKEN_AUDIENCE)
-                .acceptNotBefore(System.currentTimeMillis() - REFRESH_TOKEN_EXPIRATION_TIME_IN_S)
-                .acceptExpiresAt(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION_TIME_IN_S)
                 .build();
     }
 
