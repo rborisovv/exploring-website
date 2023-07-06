@@ -34,7 +34,10 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
         deps: [HttpClient]
       }
     }),
-    HttpClientXsrfModule
+    HttpClientXsrfModule.withOptions({
+      cookieName: 'access_token',
+      headerName: 'X-Access-Token'
+    })
   ],
   providers: [
     {
