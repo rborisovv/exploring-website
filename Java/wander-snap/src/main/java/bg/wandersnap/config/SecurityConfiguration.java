@@ -76,7 +76,7 @@ public class SecurityConfiguration {
                                  final @Lazy AccessTokenAuthenticationFilter accessTokenAuthenticationFilter,
                                  final @Lazy RefreshTokenAuthenticationFilter refreshTokenAuthenticationFilter,
                                  final JwtAuthenticationProvider jwtAuthenticationProvider
-                                  ) {
+    ) {
 
         this.userRepository = userRepository;
         this.resourceLoader = resourceLoader;
@@ -109,7 +109,10 @@ public class SecurityConfiguration {
                         .authenticated())
                 .addFilterBefore(refreshTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(accessTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .formLogin(Customizer.withDefaults())
+                .formLogin((form) -> form
+                        .successHandler((req, res, auth) -> res.setStatus(HttpStatus.OK.value()))
+                        .failureHandler((req, res, auth) -> res.setStatus(HttpStatus.UNAUTHORIZED.value()))
+                )
                 .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
                         httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(
                                 new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
