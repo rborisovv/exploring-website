@@ -142,9 +142,9 @@ public class SecurityConfiguration {
         corsConfiguration.setAllowCredentials(true);
         corsConfiguration.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
         corsConfiguration.setAllowedHeaders(Arrays.asList("Origin", "Access-Control-Allow-Origin", "Content-Type",
-                "Accept", "Access-Token", "Refresh-Token", "Authorization", "X-Request-With", "Access-Control-Request-Method",
+                "Accept", "Access-Token", "Authorization", "X-Request-With", "Access-Control-Request-Method",
                 "Access-Control-Request-Headers", "XSRF-TOKEN", "X-XSRF-TOKEN"));
-        corsConfiguration.setExposedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "X-Access-Token", "X-Refresh-Token",
+        corsConfiguration.setExposedHeaders(Arrays.asList("Origin", "Content-Type", "Accept",
                 "Authorization", "Access-Control-Allow-Origin", "Access-Control-Allow-Credentials", "XSRF-TOKEN", "X-XSRF-TOKEN"));
         corsConfiguration.setAllowedMethods(Arrays.asList(
                 HttpMethod.GET.name(), HttpMethod.POST.name(),
