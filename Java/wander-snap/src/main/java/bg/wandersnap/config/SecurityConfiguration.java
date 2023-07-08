@@ -1,17 +1,21 @@
 package bg.wandersnap.config;
 
 import bg.wandersnap.dao.UserRepository;
-import bg.wandersnap.httpFilter.JwtAuthFilter;
-import bg.wandersnap.security.UnauthorizedAuthenticationEntryPoint;
+import bg.wandersnap.httpFilter.AccessTokenAuthenticationFilter;
+import bg.wandersnap.httpFilter.RefreshTokenAuthenticationFilter;
 import bg.wandersnap.security.JwtAuthenticationProvider;
 import bg.wandersnap.security.RsaKeyProviderFactory;
 import bg.wandersnap.service.UserDetailsServiceImpl;
 import com.auth0.jwt.interfaces.RSAKeyProvider;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
@@ -28,6 +32,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestHandler;
@@ -40,7 +45,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.*;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
@@ -61,17 +67,21 @@ public class SecurityConfiguration {
 
     private final UserRepository userRepository;
     private final ResourceLoader resourceLoader;
-    private final JwtAuthFilter jwtAuthFilter;
+    private final AccessTokenAuthenticationFilter accessTokenAuthenticationFilter;
+    private final RefreshTokenAuthenticationFilter refreshTokenAuthenticationFilter;
     private final JwtAuthenticationProvider jwtAuthenticationProvider;
 
     public SecurityConfiguration(final UserRepository userRepository,
                                  final ResourceLoader resourceLoader,
-                                 final @Lazy JwtAuthFilter jwtAuthFilter,
-                                 final JwtAuthenticationProvider jwtAuthenticationProvider) {
+                                 final @Lazy AccessTokenAuthenticationFilter accessTokenAuthenticationFilter,
+                                 final @Lazy RefreshTokenAuthenticationFilter refreshTokenAuthenticationFilter,
+                                 final JwtAuthenticationProvider jwtAuthenticationProvider
+                                  ) {
 
         this.userRepository = userRepository;
         this.resourceLoader = resourceLoader;
-        this.jwtAuthFilter = jwtAuthFilter;
+        this.accessTokenAuthenticationFilter = accessTokenAuthenticationFilter;
+        this.refreshTokenAuthenticationFilter = refreshTokenAuthenticationFilter;
         this.jwtAuthenticationProvider = jwtAuthenticationProvider;
     }
 
@@ -97,10 +107,12 @@ public class SecurityConfiguration {
                         .permitAll()
                         .anyRequest()
                         .authenticated())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(refreshTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(accessTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .formLogin(Customizer.withDefaults())
                 .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
                         httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(
-                                new UnauthorizedAuthenticationEntryPoint()))
+                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .build();
     }
 
@@ -130,7 +142,7 @@ public class SecurityConfiguration {
         corsConfiguration.setAllowCredentials(true);
         corsConfiguration.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
         corsConfiguration.setAllowedHeaders(Arrays.asList("Origin", "Access-Control-Allow-Origin", "Content-Type",
-                "Accept", "X-Access-Token", "X-Refresh-Token", "Authorization", "X-Request-With", "Access-Control-Request-Method",
+                "Accept", "Access-Token", "Refresh-Token", "Authorization", "X-Request-With", "Access-Control-Request-Method",
                 "Access-Control-Request-Headers", "XSRF-TOKEN", "X-XSRF-TOKEN"));
         corsConfiguration.setExposedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "X-Access-Token", "X-Refresh-Token",
                 "Authorization", "Access-Control-Allow-Origin", "Access-Control-Allow-Credentials", "XSRF-TOKEN", "X-XSRF-TOKEN"));

@@ -7,13 +7,12 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,15 +25,17 @@ import org.springframework.web.util.ContentCachingRequestWrapper;
 import java.io.IOException;
 import java.util.Set;
 
-import static bg.wandersnap.common.JwtConstants.*;
+import static bg.wandersnap.common.JwtConstants.ACCESS_TOKEN_HEADER_NAME;
+import static bg.wandersnap.common.JwtConstants.TOKEN_PREFIX;
 
+@Order(2)
 @Component
-public class JwtAuthFilter extends OncePerRequestFilter {
+public class AccessTokenAuthenticationFilter extends OncePerRequestFilter {
     private final JwtProvider jwtProvider;
     private final UserDetailsService userDetailsService;
     private final AuthenticationManager authenticationManager;
 
-    public JwtAuthFilter(final JwtProvider jwtProvider, final UserDetailsService userDetailsService, final AuthenticationManager authenticationManager) {
+    public AccessTokenAuthenticationFilter(final JwtProvider jwtProvider, final UserDetailsService userDetailsService, final AuthenticationManager authenticationManager) {
         this.jwtProvider = jwtProvider;
         this.userDetailsService = userDetailsService;
         this.authenticationManager = authenticationManager;
@@ -42,37 +43,42 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     @Override
     @SuppressWarnings("nullness")
-    protected void doFilterInternal(@NonNull final HttpServletRequest request, @NonNull final HttpServletResponse response, @NonNull final FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull final HttpServletRequest request,
+                                    @NonNull final HttpServletResponse response,
+                                    @NonNull final FilterChain filterChain) throws ServletException, IOException {
         final ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
 
         if (requestWrapper.getMethod().equalsIgnoreCase(HttpMethod.OPTIONS.name())) {
             filterChain.doFilter(requestWrapper, response);
         }
 
-        final String accessToken = request.getHeader(ACCESS_TOKEN_HEADER_NAME);
+        String accessToken = request.getHeader(ACCESS_TOKEN_HEADER_NAME);
 
         if (accessToken.isBlank() || !accessToken.startsWith(TOKEN_PREFIX)) {
             filterChain.doFilter(requestWrapper, response);
             return;
         }
 
-        final String token = accessToken.substring(TOKEN_PREFIX.length());
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        accessToken = accessToken.substring(TOKEN_PREFIX.length()).trim();
         final SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
 
         try {
-            final Set<GrantedAuthority> authorities = this.jwtProvider.getAuthorities(token);
-            final String username = this.jwtProvider.getSubject(token);
+            final Set<GrantedAuthority> authorities = this.jwtProvider.getAuthorities(accessToken);
+            final String username = this.jwtProvider.getSubject(accessToken);
             final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            final Authentication authToken = new JwtAuthenticationToken(userDetails, token, authorities);
+            final Authentication authToken = new JwtAuthenticationToken(userDetails, accessToken, authorities);
             final Authentication authentication = this.authenticationManager.authenticate(authToken);
             securityContext.setAuthentication(authentication);
             SecurityContextHolder.setContext(securityContext);
-            filterChain.doFilter(request, response);
-        } catch (final AuthenticationException ex) {
-            SecurityContextHolder.clearContext();
-            throw new BadCredentialsException(ex.getMessage());
         } catch (final SignatureVerificationException ex) {
             response.sendError(HttpStatus.UNAUTHORIZED.value());
         }
+
+        filterChain.doFilter(request, response);
     }
 }

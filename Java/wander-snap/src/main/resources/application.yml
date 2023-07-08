@@ -29,16 +29,10 @@ spring:
     resources:
       add-mappings: false
 
-logging:
-  level:
-    org:
-      springframework:
-        session:
-          web:
-            http:
-              SessionRepositoryFilter:
-                SESSION_LOGGER: TRACE
-        web: TRACE
-
 server:
   port: 8080
+
+logging:
+  level:
+    org.springframework.web: trace
+#    root: trace

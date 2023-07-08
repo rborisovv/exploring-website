@@ -9,7 +9,7 @@ import java.security.spec.InvalidKeySpecException;
 
 @Component
 public class RsaInMemoryKeysRotatorJob {
-    private static final int TIME_TO_ROTATE_ACCESS_TOKEN_KEYS = 1_800;
+    private static final int TIME_TO_ROTATE_ACCESS_TOKEN_KEYS = 1_800_000;
     private final RsaInMemoryKeyProvider rsaInMemoryKeyProvider;
 
     public RsaInMemoryKeysRotatorJob(final RsaInMemoryKeyProvider rsaInMemoryKeyProvider) {

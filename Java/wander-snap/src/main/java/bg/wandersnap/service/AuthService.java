@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 
 import static bg.wandersnap.common.JwtConstants.ACCESS_TOKEN_EXPIRATION_TIME_IN_S;
 import static bg.wandersnap.common.JwtConstants.ACCESS_TOKEN_NAME;
-import static bg.wandersnap.common.Symbols.FORWARD_SLASH;
+import static bg.wandersnap.util.ResponseCookieBuilder.buildTokenCookie;
 
 @Service
 public class AuthService {
@@ -79,31 +79,27 @@ public class AuthService {
         }
         userGdprConsentCollection.addAll(gdprConsent);
 
-        final RefreshToken refreshToken = RefreshToken.builder()
-                .token(this.textEncryptor.encrypt(UUID.randomUUID().toString()))
-                .expirationTime(LocalDateTime.now().plusDays(7))
-                .user(user)
-                .build();
-
+        if (this.refreshTokenRepository.getRefreshTokenByUsername(username).isEmpty()) {
+            this.addRefreshTokenToCurrentUser(user);
+        }
 
         this.userRepository.save(user);
-        this.refreshTokenRepository.save(refreshToken);
 
         final String accessToken = this.jwtProvider.generateAccessToken(userDetails);
-        final Cookie accessTokenCookie = generateTokenCookie(accessToken, ACCESS_TOKEN_NAME, ACCESS_TOKEN_EXPIRATION_TIME_IN_S);
+        final Cookie accessTokenCookie = buildTokenCookie(accessToken, ACCESS_TOKEN_NAME, ACCESS_TOKEN_EXPIRATION_TIME_IN_S);
 
         response.addCookie(accessTokenCookie);
 
         return new HttpGenericResponse();
     }
 
-    private static Cookie generateTokenCookie(final String token, final String cookieName, final int cookieExpTime) {
-        final Cookie cookie = new Cookie(cookieName, token);
-        cookie.setHttpOnly(false);
-        cookie.setSecure(false);
-        cookie.setMaxAge(cookieExpTime);
-        cookie.setPath(FORWARD_SLASH);
+    private void addRefreshTokenToCurrentUser(final User user) {
+        final RefreshToken refreshToken = RefreshToken.builder()
+                .token(this.textEncryptor.encrypt(UUID.randomUUID().toString()))
+                .expirationTime(LocalDateTime.now().plusDays(7))
+                .user(user)
+                .build();
 
-        return cookie;
+        this.refreshTokenRepository.save(refreshToken);
     }
 }

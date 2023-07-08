@@ -37,7 +37,7 @@ public class User extends BaseEntity implements Serializable {
     @Column(unique = true, length = 25)
     private String email;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     private Set<Role> roles;
 
     @Enumerated(EnumType.STRING)

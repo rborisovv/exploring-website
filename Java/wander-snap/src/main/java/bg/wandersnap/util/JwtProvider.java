@@ -83,7 +83,7 @@ public class JwtProvider {
     public boolean isExpiredToken(final String token) {
         final JWTVerifier jwtVerifier = getAccessTokenVerifier();
         final String subject = getSubject(token);
-        return StringUtils.isNotBlank(subject) && !isTokenExpired(jwtVerifier, token);
+        return StringUtils.isNotBlank(subject) && isTokenExpired(jwtVerifier, token);
     }
 
     public Set<GrantedAuthority> getAuthorities(final String token) {
@@ -104,8 +104,8 @@ public class JwtProvider {
         return JWT.require(algorithm)
                 .withIssuer(TOKEN_ISSUER)
                 .withAudience(TOKEN_AUDIENCE)
-                .acceptNotBefore(System.currentTimeMillis() - TOKEN_EXPIRATION_TIME_IN_MS)
-                .acceptExpiresAt(System.currentTimeMillis() + TOKEN_EXPIRATION_TIME_IN_MS)
+                .acceptNotBefore((System.currentTimeMillis() / 1000) - TOKEN_EXPIRATION_TIME_IN_S)
+                .acceptExpiresAt((System.currentTimeMillis() / 1000) + TOKEN_EXPIRATION_TIME_IN_S)
                 .build();
     }
 

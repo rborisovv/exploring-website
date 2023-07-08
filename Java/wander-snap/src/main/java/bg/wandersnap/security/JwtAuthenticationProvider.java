@@ -35,6 +35,8 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
             throw new JwtTokenVerificationException(TOKEN_CANNOT_BE_VERIFIED);
         }
 
+        authentication.setAuthenticated(true);
+
         return authentication;
     }
 
