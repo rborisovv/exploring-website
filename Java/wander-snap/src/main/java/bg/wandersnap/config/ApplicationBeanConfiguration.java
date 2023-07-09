@@ -23,19 +23,19 @@ class ApplicationBeanConfiguration {
     private static final String TEMPLATE_RESOLVER_SUFFIX = ".html";
 
     @Bean
-    ModelMapper modelMapper() {
+    public ModelMapper modelMapper() {
         return new ModelMapper();
     }
 
     @Bean
-    Validator validator() {
+    public Validator validator() {
         try (final ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory()) {
             return validatorFactory.getValidator();
         }
     }
 
     @Bean
-    SpringResourceTemplateResolver templateResolver() {
+    public SpringResourceTemplateResolver templateResolver() {
         final SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
         templateResolver.setPrefix(TEMPLATE_RESOLVER_PREFIX);
         templateResolver.setSuffix(TEMPLATE_RESOLVER_SUFFIX);
@@ -46,7 +46,7 @@ class ApplicationBeanConfiguration {
     }
 
     @Bean
-    Executor executor() {
+    public Executor executor() {
         final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(24);
         executor.setMaxPoolSize(32);
@@ -57,7 +57,7 @@ class ApplicationBeanConfiguration {
     }
 
     @Bean
-    Dotenv dotenv() {
+    public Dotenv dotenv() {
         return Dotenv.configure()
                 .directory("src/main/resources/env")
                 .filename("variables.env")
@@ -65,7 +65,7 @@ class ApplicationBeanConfiguration {
     }
 
     @Bean
-    TextEncryptor textEncryptor(final Dotenv variableLoader) {
+    public TextEncryptor textEncryptor(final Dotenv variableLoader) {
 
         return Encryptors.delux(
                 Objects.requireNonNull(variableLoader.get("REFRESH_TOKEN_ENCRYPTION_PASSWORD")),

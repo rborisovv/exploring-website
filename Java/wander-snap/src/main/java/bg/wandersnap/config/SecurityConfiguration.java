@@ -86,7 +86,7 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    SecurityFilterChain filterChain(final HttpSecurity httpSecurity) throws Exception {
+    public SecurityFilterChain filterChain(final HttpSecurity httpSecurity) throws Exception {
         final CookieCsrfTokenRepository tokenRepository = new CookieCsrfTokenRepository();
         tokenRepository.setCookieCustomizer(responseCookieBuilder -> responseCookieBuilder.httpOnly(false).build());
 
@@ -120,12 +120,12 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    PasswordEncoder passwordEncoder() {
+    public PasswordEncoder passwordEncoder() {
         return Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
     }
 
     @Bean
-    AuthenticationManager authManager(final HttpSecurity http) throws Exception {
+    public AuthenticationManager authManager(final HttpSecurity http) throws Exception {
         final AuthenticationManagerBuilder authenticationManagerBuilder =
                 http.getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder.authenticationProvider(jwtAuthenticationProvider);
@@ -139,7 +139,7 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    CorsFilter corsFilter() {
+    public CorsFilter corsFilter() {
         final UrlBasedCorsConfigurationSource urlBasedCorsConfigurationSource = new UrlBasedCorsConfigurationSource();
         final CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.setAllowCredentials(true);
@@ -159,7 +159,7 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    static RoleHierarchy roleHierarchy() {
+    public static RoleHierarchy roleHierarchy() {
         final var hierarchy = new RoleHierarchyImpl();
         hierarchy.setHierarchy("""
                 ROLE_ADMIN > ROLE_USER
@@ -169,7 +169,7 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    static MethodSecurityExpressionHandler methodSecurityExpressionHandler(final RoleHierarchy roleHierarchy) {
+    public static MethodSecurityExpressionHandler methodSecurityExpressionHandler(final RoleHierarchy roleHierarchy) {
         final DefaultMethodSecurityExpressionHandler expressionHandler = new DefaultMethodSecurityExpressionHandler();
         expressionHandler.setRoleHierarchy(roleHierarchy);
         return expressionHandler;
@@ -177,12 +177,12 @@ public class SecurityConfiguration {
 
     @Bean
     @Profile("Production")
-    UserDetailsService userDetailsService() {
+    public UserDetailsService userDetailsService() {
         return new UserDetailsServiceImpl(this.userRepository);
     }
 
     @Bean("classPathRsaKeyProvider")
-    RSAKeyProvider rsaKeyProvider() throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
+    public RSAKeyProvider rsaKeyProvider() throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
         final Resource privateKeyPath = resourceLoader.getResource("classpath:keys/private_key.pem");
         final Resource publicKeyPath = resourceLoader.getResource("classpath:keys/public_key.pem");
         final byte[] privateKeyBytes = Files.readAllBytes(Paths.get(privateKeyPath.getURI()));
