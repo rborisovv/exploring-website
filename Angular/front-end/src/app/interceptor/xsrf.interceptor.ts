@@ -4,7 +4,7 @@ import { Observable } from "rxjs";
 
 @Injectable()
 export class XsrfInterceptor implements HttpInterceptor {
-  private static readonly accessToken: string = 'X-Access-Token';
+  private static readonly accessToken: string = 'access_token';
 
   intercept(httpRequest: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const csrfToken: string = 'XSRF-TOKEN';
@@ -12,7 +12,7 @@ export class XsrfInterceptor implements HttpInterceptor {
     return next.handle(httpRequest.clone({
       setHeaders: {
         'X-XSRF-TOKEN': XsrfInterceptor.obtainCsrfHeader(csrfToken),
-        'X-Access-Token': XsrfInterceptor.obtainJwtHeader()
+        'Authorization': XsrfInterceptor.obtainJwtHeader()
       }
     }));
   }
