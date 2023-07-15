@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -81,6 +82,7 @@ public class RefreshTokenAuthenticationFilter extends OncePerRequestFilter {
             }
 
             if (optionalRefreshToken.get().getExpirationTime().isBefore(LocalDateTime.now())) {
+                response.setStatus(HttpStatus.UNAUTHORIZED.value());
                 throw new RefreshTokenExpiredException();
             }
 

@@ -104,8 +104,8 @@ public class JwtProvider {
         return JWT.require(algorithm)
                 .withIssuer(TOKEN_ISSUER)
                 .withAudience(TOKEN_AUDIENCE)
-                .acceptNotBefore((System.currentTimeMillis() / 1000) - TOKEN_EXPIRATION_TIME_IN_S)
-                .acceptExpiresAt((System.currentTimeMillis() / 1000) + TOKEN_EXPIRATION_TIME_IN_S)
+                .acceptNotBefore((System.currentTimeMillis() / 1000) - ACCESS_TOKEN_EXPIRATION_TIME_IN_S)
+                .acceptExpiresAt((System.currentTimeMillis() / 1000) + ACCESS_TOKEN_EXPIRATION_TIME_IN_S)
                 .build();
     }
 

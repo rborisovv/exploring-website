@@ -96,7 +96,7 @@ public class AuthService {
     private void addRefreshTokenToCurrentUser(final User user) {
         final RefreshToken refreshToken = RefreshToken.builder()
                 .token(this.textEncryptor.encrypt(UUID.randomUUID().toString()))
-                .expirationTime(LocalDateTime.now().plusDays(7))
+                .expirationTime(LocalDateTime.now().plusDays(30))
                 .user(user)
                 .build();
 
