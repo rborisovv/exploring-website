@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { AsyncPipe, CommonModule } from '@angular/common';
 import { HomeComponent } from './home/home.component';
-
 
 
 @NgModule({
@@ -9,7 +8,9 @@ import { HomeComponent } from './home/home.component';
     HomeComponent
   ],
   imports: [
-    CommonModule
+    CommonModule,
+    AsyncPipe
   ]
 })
-export class HomeModule { }
+export class HomeModule {
+}

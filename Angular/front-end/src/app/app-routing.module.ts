@@ -5,7 +5,7 @@ import { HomeComponent } from "./modules/home/home/home.component";
 
 const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'home' },
-  { path: 'home', pathMatch: 'full', component: HomeComponent },
+  { path: 'home', component: HomeComponent },
   { path: 'auth', loadChildren: () => import('./modules/auth/auth.module').then(m => m.AuthModule) }
 ];
 
@@ -13,7 +13,8 @@ const routes: Routes = [
   imports: [
     RouterModule.forRoot(routes, {
       scrollPositionRestoration: "top",
-      preloadingStrategy: PreloadAllModules
+      preloadingStrategy: PreloadAllModules,
+      enableTracing: true
     }),
     FontAwesomeModule
   ],
