@@ -9,6 +9,8 @@ import { TranslateHttpLoader } from "@ngx-translate/http-loader";
 import { catchError, Observable, of } from "rxjs";
 import { HttpHeadersDecoratorInterceptor } from "./interceptor/http.headers.decorator.interceptor";
 import { XsrfInterceptor } from "./interceptor/xsrf.interceptor";
+import { HomeModule } from "./modules/home/home.module";
+import { UnauthorizedInterceptor } from "./interceptor/unauthorized.interceptor";
 
 export function fetchCsrfToken(httpClient: HttpClient): () => Observable<any> {
   return () => httpClient.get('http://localhost:8080/auth/csrf').pipe(catchError(() => of(null)));
@@ -34,7 +36,8 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
         deps: [HttpClient]
       }
     }),
-    HttpClientXsrfModule
+    HttpClientXsrfModule,
+    HomeModule
   ],
   providers: [
     {
@@ -45,14 +48,19 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     },
     {
       provide: HTTP_INTERCEPTORS,
-      useClass: HttpHeadersDecoratorInterceptor,
+      useClass: UnauthorizedInterceptor,
       multi: true
     },
     {
       provide: HTTP_INTERCEPTORS,
       useClass: XsrfInterceptor,
       multi: true
-    }
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: HttpHeadersDecoratorInterceptor,
+      multi: true
+    },
   ],
   bootstrap: [AppComponent]
 })

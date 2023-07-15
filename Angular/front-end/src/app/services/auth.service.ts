@@ -16,4 +16,8 @@ export class AuthService {
   public loginUser(loginModel: UserLoginModel): Observable<HttpGenericResponse> {
     return this.http.post<HttpGenericResponse>(`${this.API_URL}/auth/login`, loginModel);
   }
+
+  public hello(): Observable<HttpGenericResponse> {
+    return this.http.get<HttpGenericResponse>(`${this.API_URL}/hello`);
+  }
 }
