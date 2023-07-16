@@ -41,3 +41,5 @@ out/
 /src/main/resources/keys
 /src/main/resources/env/
 /src/main/resources/env
+/src/main/resources/logs/
+/src/main/resources/logs
