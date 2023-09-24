@@ -12,6 +12,18 @@
   align-items: center;
 }
 
+.flex-full__item {
+  flex: 0 0 100%;
+}
+
+.flex-half__item {
+  flex: 0 0 50%;
+}
+
+.flex-quarter__item {
+  flex: 0 0 25%;
+}
+
 @media screen and (max-width: 500px) {
   .flex-half__item, .flex-quarter__item {
     flex: 0 0 100%;
