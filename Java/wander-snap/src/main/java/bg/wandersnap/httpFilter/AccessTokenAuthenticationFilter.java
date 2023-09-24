@@ -54,7 +54,7 @@ public class AccessTokenAuthenticationFilter extends OncePerRequestFilter {
 
         String accessToken = request.getHeader(ACCESS_TOKEN_HEADER_NAME);
 
-        if (accessToken.isBlank() || !accessToken.startsWith(TOKEN_PREFIX)) {
+        if (accessToken == null || accessToken.isBlank() || !accessToken.startsWith(TOKEN_PREFIX)) {
             filterChain.doFilter(requestWrapper, response);
             return;
         }

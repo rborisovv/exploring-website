@@ -45,4 +45,13 @@ public class User extends BaseEntity implements Serializable {
 
     @Column(nullable = false)
     private LocalDate joinDate;
+
+    @Column
+    private String phone;
+
+    @Column
+    private String profession;
+
+    @OneToOne
+    private Media profilePicture;
 }

@@ -62,7 +62,7 @@ public class RefreshTokenAuthenticationFilter extends OncePerRequestFilter {
 
         String accessToken = request.getHeader(ACCESS_TOKEN_HEADER_NAME);
 
-        if (accessToken.substring(TOKEN_PREFIX.length() - 1).trim().isBlank() || !accessToken.startsWith(TOKEN_PREFIX)) {
+        if (accessToken == null || accessToken.substring(TOKEN_PREFIX.length() - 1).trim().isBlank() || !accessToken.startsWith(TOKEN_PREFIX)) {
             filterChain.doFilter(request, response);
             return;
         }
