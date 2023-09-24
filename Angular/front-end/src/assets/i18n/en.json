@@ -17,7 +17,10 @@
       },
       "errors": {
         "minlength": {
-          "label": "The minimum length is 5 characters."
+          "label": "The minimum length of the field is 5 characters."
+        },
+        "required": {
+          "label": "The field is required."
         }
       }
     }

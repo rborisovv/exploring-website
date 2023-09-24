@@ -68,7 +68,7 @@ form {
   align-items: center;
 }
 
-.i i {
+.i fa-icon {
   transition: .3s;
 }
 
@@ -97,6 +97,10 @@ form {
   transition: .4s;
 }
 
+.input-div.error:before, .input-div.error:after {
+  background-color: #dc3545;
+}
+
 .input-div:before {
   right: 50%;
 }
@@ -114,7 +118,7 @@ form {
   font-size: 15px;
 }
 
-.input-div.focus > .i > i {
+.input-div.focus > .i > fa-icon {
   color: #38d39f;
 }
 
@@ -175,6 +179,9 @@ a:hover {
   transform: scale(104%);
 }
 
+.error {
+  color: #dc3545;
+}
 
 @media screen and (max-width: 1050px) {
   .container {
