@@ -4,6 +4,8 @@ import {
   OnInit, Renderer2
 } from '@angular/core';
 import { FormControl, FormGroup, Validators } from "@angular/forms";
+import { faUser, IconDefinition } from "@fortawesome/free-solid-svg-icons";
+import { faLock } from "@fortawesome/free-solid-svg-icons/faLock";
 
 @Component({
   selector: 'app-login',
@@ -12,8 +14,10 @@ import { FormControl, FormGroup, Validators } from "@angular/forms";
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LoginComponent implements OnInit {
+  user: IconDefinition = faUser;
+  lock: IconDefinition = faLock;
 
-  loginFormGroup: FormGroup = new FormGroup({
+  loginFormGroup = new FormGroup({
     username: new FormControl('', [
       Validators.required,
       Validators.minLength(5),

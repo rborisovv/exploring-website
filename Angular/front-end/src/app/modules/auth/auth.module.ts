@@ -7,6 +7,7 @@ import { ReactiveFormsModule } from "@angular/forms";
 import { TranslateModule } from "@ngx-translate/core";
 import { authGuard } from "../../guard/auth.guard";
 import { CookieService } from "ngx-cookie-service";
+import { ErrorHandlingModule } from "../util/error-handling/error-handling.module";
 
 const ROUTES: Routes = [
   {
@@ -25,13 +26,14 @@ const ROUTES: Routes = [
   declarations: [
     LoginComponent
   ],
-  imports: [
-    CommonModule,
-    RouterModule.forChild(ROUTES),
-    FontAwesomeModule,
-    ReactiveFormsModule,
-    TranslateModule
-  ],
+    imports: [
+        CommonModule,
+        RouterModule.forChild(ROUTES),
+        FontAwesomeModule,
+        ReactiveFormsModule,
+        TranslateModule,
+        ErrorHandlingModule
+    ],
   providers: [CookieService]
 })
 export class AuthModule {

@@ -10,34 +10,15 @@
         "password": {
           "label": "Password"
         },
-        "invalid": {
-          "username": {
-            "required": {
-              "label": "The username is required."
-            },
-            "minLength": {
-              "label": "The minimum length of the username is 5 characters."
-            },
-            "maxLength": {
-              "label": "The maximum length of the username is 10 characters."
-            }
-          },
-          "password": {
-            "required": {
-              "label": "The password is required."
-            },
-            "minLength": {
-              "label": "The maximum length of the password is 6 characters."
-            },
-            "maxLength": {
-              "label": "The maximum length of the password is 20 characters."
-            }
-          }
-        },
         "loginBtn": "Login",
         "forgotPassword": "Forgot password?",
         "missingAccount": "Don't have an account?",
         "register": "Register!"
+      },
+      "errors": {
+        "minlength": {
+          "label": "The minimum length is 5 characters."
+        }
       }
     }
   }
