@@ -1,11 +1,14 @@
 import {
   ChangeDetectionStrategy,
-  Component,
-  OnInit, Renderer2
+  Component, Renderer2
 } from '@angular/core';
 import { FormControl, FormGroup, Validators } from "@angular/forms";
 import { faUser, IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { faLock } from "@fortawesome/free-solid-svg-icons/faLock";
+import { AuthService } from "../../../services/auth.service";
+import { UserLoginModel } from "../../../model/auth/user.login.model";
+import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
+import { Router } from "@angular/router";
 
 @Component({
   selector: 'app-login',
@@ -13,7 +16,8 @@ import { faLock } from "@fortawesome/free-solid-svg-icons/faLock";
   styleUrls: ['./login.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LoginComponent implements OnInit {
+@UntilDestroy()
+export class LoginComponent {
   user: IconDefinition = faUser;
   lock: IconDefinition = faLock;
 
@@ -30,11 +34,9 @@ export class LoginComponent implements OnInit {
     ])
   });
 
-  constructor(private renderer: Renderer2) {
-  }
-
-  ngOnInit(): void {
-
+  constructor(private renderer: Renderer2,
+              private authService: AuthService,
+              private router: Router) {
   }
 
   onInputFocus(inputContainer: HTMLDivElement): void {
@@ -47,5 +49,36 @@ export class LoginComponent implements OnInit {
     if (input.value === "") {
       this.renderer.removeClass(inputContainer, 'focus');
     }
+  }
+
+  get username(): string | null | undefined {
+    return this.loginFormGroup.get('username')?.value;
+  }
+
+  get password(): string | null | undefined {
+    return this.loginFormGroup.get('password')?.value;
+  }
+
+  login(): void {
+    const userLoginModel: UserLoginModel = this.collectLoginData();
+    this.authService.loginUser(userLoginModel)
+      .pipe(untilDestroyed(this))
+      .subscribe((): void => {
+        this.router.navigate(['/home']);
+      });
+  }
+
+  private collectLoginData(): UserLoginModel {
+    const loginData: UserLoginModel = {};
+
+    if (this.username) {
+      loginData.username = this.username;
+    }
+
+    if (this.password) {
+      loginData.password = this.password;
+    }
+
+    return loginData;
   }
 }
